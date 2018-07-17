@@ -3,6 +3,7 @@
 #include <SFML/System.hpp>
 #include <SFML/Network.hpp>
 #include "Base.h"
+//#define RASP
 
 using namespace std;
 
@@ -12,6 +13,9 @@ int main()
     bool network = false;
     bool loadFromSave = false;
     bool debugMode = false;
+    #ifdef RASP
+    wiringPiSetup();
+    #endif // RASP
 
     Base base;
 

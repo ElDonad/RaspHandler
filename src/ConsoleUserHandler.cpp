@@ -257,6 +257,7 @@ void ConsoleUserHandler::m_handler()
             cout<<endl;
             directionId = getSafeInt("Entrez la direction souhaitée : ") - 1;
             std::shared_ptr<UserEvent> event (new UserEvent(UserEvent::UserEventTypes::ChangeAiguillageState));
+            std::cout<<toSwitch->getTag();
             event->changeAiguillageStateEvent.aiguillageHandlerId = toSwitch->getParentAiguillageHandler().lock()->getId();
             event->changeAiguillageStateEvent.aiguillageId = toSwitch->getId();
             event->changeAiguillageStateEvent.targetState = toSwitch->getValidDirections()[directionId];

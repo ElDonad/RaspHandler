@@ -39,7 +39,7 @@ DirectAiguillageHandler::AiguillageHandlerActivatingAiguillageState DirectAiguil
 {
 // TODO (Elie#3#): rajouter les sécurités
 
-    std::shared_ptr<BaseAiguillage> toSwitch;
+    std::shared_ptr<BaseAiguillage> toSwitch = findAiguillageById(aiguillageId).second.lock();
     for (auto it = m_aiguillages.begin(); it != m_aiguillages.end(); ++it)
     {
         if ((*it)->getId() == aiguillageId)
@@ -63,10 +63,12 @@ DirectAiguillageHandler::AiguillageHandlerSwitchingAlimState DirectAiguillageHan
     if (switchState == true)
     {
         digitalWrite(pinAlim, HIGH);
+        std::cout<<"[DEBUG] Pin "<<pinAlim<<" activé (alim)"<<std::endl;
     }
     else
     {
-        digiatlWrite(pinAlim, LOW);
+        digitalWrite(pinAlim, LOW);
+        std::cout<<"[DEBUG] Pin "<<pinAlim<<" désactivé (alim)"<<std::endl;
     }
 
 
@@ -104,9 +106,15 @@ void DirectAiguillageHandler::simpleSwitch(int pin, SimpleAiguillage::PinState s
     #ifdef RASP
     int position;
     if (sens == SimpleAiguillage::PinState::Activated)
-        position = HIGH;
+        {
+            std::cout<<"[DEBUG] pin "<<pin<<" activé"<<std::endl;
+            position = HIGH;
+        }
     else if (sens == SimpleAiguillage::PinState::Unactivated)
-        position = LOW;
+        {
+            std::cout<<"[DEBUG] pin "<<pin<<" désactivé"<<std::endl;
+            position = LOW;
+        }
     digitalWrite(pin, position);
     #endif // RASP
 }
@@ -123,6 +131,7 @@ void DirectAiguillageHandler::doubleSwitch(int pin)
     digitalWrite(pin, HIGH);
     sf::sleep(sf::seconds(SWITCH_TIMER));
     digitalWrite(pin, LOW);
+    std::cout<<"[DEBUG] Pin "<<pin<<" DoubleSwitché"<<std::endl;
     #endif // RASP
 }
 
