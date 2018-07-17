@@ -30,6 +30,7 @@ SimpleAiguillage1::SimpleAiguillage1(SimpleAiguillage1::AiguillageParams* params
 //    m_alimId = params->alimId;
     m_targetDirection = params->direction;
 
+    m_isDisponible = true;
     m_isStopping = false;
     m_alimentationId = params->alimId;
     m_alimentationHandlerId = params->alimHandlerId;

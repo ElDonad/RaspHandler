@@ -40,11 +40,6 @@ DirectAiguillageHandler::AiguillageHandlerActivatingAiguillageState DirectAiguil
 // TODO (Elie#3#): rajouter les sécurités
 
     std::shared_ptr<BaseAiguillage> toSwitch = findAiguillageById(aiguillageId).second.lock();
-    for (auto it = m_aiguillages.begin(); it != m_aiguillages.end(); ++it)
-    {
-        if ((*it)->getId() == aiguillageId)
-            toSwitch = *it;
-    }
     std::vector<BaseAiguillage::ErrorsAiguillage> errors;
     toSwitch->changeSens(direction, errors);
     return AiguillageHandlerActivatingAiguillageState::AiguillageDone;
@@ -123,7 +118,7 @@ void DirectAiguillageHandler::doubleSwitch(int pin)
 {
     #ifndef RASP
     std::cout<<"pin "<<pin<<" active"<<std::endl;
-    sf::sleep(sf::seconds(SWITTCH_TIMER));
+    sf::sleep(sf::seconds(SWITCH_TIMER));
     std::cout<<"pin "<<pin<<" desactive"<<std::endl;
     #endif // RASP
 

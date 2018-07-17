@@ -7,7 +7,7 @@
 
 #include "SFML/System.hpp"
 #include <memory>
-#define SWITTCH_TIMER 0.15
+#define SWITCH_TIMER 0.15
 //#define RASP
 
 
