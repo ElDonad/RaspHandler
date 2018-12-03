@@ -4,10 +4,11 @@
 #include "SimpleAiguillage1.h"
 #include "AiguillageHandlerEvent.h"
 #include "json.hpp"
+#include "TreeSerializer.h"
 
-#include "SFML/System.hpp"
+#include <chrono>
 #include <memory>
-#define SWITCH_TIMER 0.15
+#define SWITCH_TIMER 15
 //#define RASP
 
 
@@ -19,7 +20,7 @@ Il est à noter que même si elle fournit à l'appel des fonctions getAiguillages()
 
 
 */
-class AiguillageHandler
+class AiguillageHandler : public std::enable_shared_from_this<AiguillageHandler>
 {
     public:
         enum AiguillageHandlerType
@@ -30,7 +31,6 @@ class AiguillageHandler
         enum AiguillageHandlerActivatingAiguillageState//!< Toutes les issues possibles lors de l'activation d'un aiguillage.
         {
             AiguillageDone,
-            AiguillageInvalidPinError,
             UnsupportedAiguillageError,
             AiguillageInvalidSensError
         };
@@ -41,7 +41,8 @@ class AiguillageHandler
             AlimInvalidPinError
         };
         /** Default constructor */
-        //AiguillageHandler(AiguillageManager* parent);
+        AiguillageHandler(AiguillageManager* parent);
+        virtual void backup(nlohmann::json data);
         /** Default destructor */
         virtual ~AiguillageHandler();
         //! Démarre le handler
@@ -63,7 +64,8 @@ class AiguillageHandler
         @param pinToClaim : Le pin à mettre en place.
 
         */
-        virtual void claimPin(int pinToClaim)=0;
+        virtual bool claimPin(int pinToClaim)=0;
+        virtual bool unclaimPin(int pinToUnclaim)=0;
         virtual std::vector<std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage> > > getAiguillages()=0;
         virtual std::pair<nlohmann::json, std::weak_ptr<BaseAiguillage> > findAiguillageById(int id, bool* = nullptr)=0;//!< @param json : les caractéristiques de location supplémentaires
         int getId();
@@ -73,24 +75,26 @@ class AiguillageHandler
 
         virtual nlohmann::json getCompLocParamsAiguillage()=0;//!< Cette fonction permet de retourner un json à remplir qui permettra de mieux caractériser la localisation des aiguillages.
         virtual void transmitEvent(std::shared_ptr<AiguillageHandlerEvent>event)=0;
+        nlohmann::json save();
 
 
 
 
     protected:
         AiguillageManager *m_parent;
-        const static sf::Time switchDuration;
+        const static std::chrono::milliseconds switchDuration;
         //std::vector <std::shared_ptr<BaseAiguillage> > m_aiguillages;//la table des aiguillages
         //bool isValidTypeAiguillage(BaseAiguillage::AiguillageType aiguillageType[], int tableSize, BaseAiguillage::AiguillageType toAnalyze);//!< Petite fonction utilitaire qui signale si un aiguillage est compatible avec le handler.
         int m_id;//!<L'id attribué par l'AiguillageManager.
         bool m_isInitialized;//!< L'id est-il celui qui est attribué ?
         std::string m_nom;//!<Utilisé pour connaître l'utilité du Handler;
         bool m_isSinglePinModeCompatible;//!< Permet de déterminer si on peut utiliser toutes les fonctions relatives à l'utilisation des alimentations.
-        std::shared_ptr<sf::Thread> m_aiguillageChecker;
         virtual void t_aiguillageChecker()=0;
+        TreeSerializer<AiguillageHandler> m_serializer;
 
 
     private:
+        void registerJSONNode();
 };
 
 #endif // AIGUILLAGEHANDLER_H

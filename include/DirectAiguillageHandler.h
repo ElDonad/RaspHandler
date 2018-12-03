@@ -1,6 +1,9 @@
 #ifndef DIRECTAIGUILLAGEHANDLER_H
 #define DIRECTAIGUILLAGEHANDLER_H
 
+#include <thread>
+#include <mutex>
+
 #include <AiguillageHandler.h>
 #include <SinglePinModeCompatibleAiguillageHandler.h>
 #include "AiguillageHandlerEvent.h"
@@ -22,7 +25,8 @@ class DirectAiguillageHandler : public SinglePinModeCompatibleAiguillageHandler
         virtual void launch();
         virtual AiguillageHandlerActivatingAiguillageState switchAiguillage(int aiguillage, BaseAiguillage::Direction direction);
         virtual AiguillageHandlerSwitchingAlimState toggleAlim(int pinAlim, bool switchState = false);
-        virtual void claimPin(int pinToClaim);
+        virtual bool claimPin(int pinToClaim);
+        virtual bool unclaimPin(int pinToUnclaim);
 
         virtual std::vector<std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage> > > getAiguillages();
         virtual std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage> > findAiguillageById(int id,bool* founded = nullptr);
@@ -35,6 +39,7 @@ class DirectAiguillageHandler : public SinglePinModeCompatibleAiguillageHandler
         virtual nlohmann::json getCompLocParamsAlimentation();
         virtual void transmitEvent(std::shared_ptr<AiguillageHandlerEvent> event);
         virtual void requestSimpleSwitch(SimpleAiguillage::SinglePinModePin toSwitch);
+        virtual void backup(nlohmann::json data);
 
 
     protected:
@@ -47,12 +52,14 @@ class DirectAiguillageHandler : public SinglePinModeCompatibleAiguillageHandler
         std::vector<std::shared_ptr<Alimentation> > m_alimentations;
         static int i_nextAvailableId;
         int getNewAlimentationId();
+        std::shared_ptr<std::thread> m_aiguillageChecker;
         virtual void t_aiguillageChecker();
 
 
     private:
         static const std::vector<BaseAiguillage::AiguillageType> compatiblesAiguillages;
         std::vector<int> getUsedPins();
+        void registerJSonNode();
 };
 
 #endif // DIRECTAIGUILLAGEHANDLER_H

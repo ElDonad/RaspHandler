@@ -7,10 +7,15 @@ using namespace std;
 
 ConsoleUserHandler::ConsoleUserHandler(EventHandler* parent)
 {
-    m_listenerThread = new sf::Thread(ConsoleUserHandler::m_listener, this);
-    m_handlerThread = new sf::Thread(ConsoleUserHandler::m_handler, this);
     m_stop = false;
     m_parentEventHandler = parent;
+
+
+}
+
+ConsoleUserHandler::ConsoleUserHandler(EventHandler* parent, nlohmann::json saveData) : ConsoleUserHandler(parent)
+{
+
 }
 
 ConsoleUserHandler::~ConsoleUserHandler()
@@ -40,6 +45,7 @@ void ConsoleUserHandler::m_handler()
         cout<<">3. Manipuler les aiguillages"<<endl;
         cout<<">4. Gestionnaire d'Alimentations"<<endl;
         cout<<">5. Parametres debug"<<endl;
+        cout<<">s. sauvegarder"<<endl;
         cout<<">x. Quitter"<<endl;
         string retour = safeWaitForEntry();
 
@@ -385,6 +391,26 @@ void ConsoleUserHandler::m_handler()
 
         }
 
+        else if (retour == "5")
+        {
+            cout<<"> Parametres debug : "<<endl<<"> 1. sauvegarder"<<endl;
+            retour = safeWaitForEntry();
+            if (retour == "1")
+            {
+                std::shared_ptr<UserEvent> saveEvent(new UserEvent(UserEvent::UserEventTypes::RequestSave));
+                m_parentEventHandler->transmitEvent(saveEvent);
+            }
+        }
+
+        else if (retour == "s")
+        {
+            cout<<"> sauvegarde en cours..."<<endl;
+            std::shared_ptr<UserEvent> saveEvent(new UserEvent(UserEvent::UserEventTypes::RequestSave));
+            m_parentEventHandler->transmitEvent(saveEvent);
+            cout<<"> sauvegarde effectuee."<<endl;
+
+        }
+
 //
 //        else if (retour == "3")//modifier sens
 //        {
@@ -476,7 +502,7 @@ string ConsoleUserHandler::safeWaitForEntry()
     m_Mentry.unlock();
     while (m_entryChanged == false && m_stop == false)
     {
-        sf::sleep(sf::milliseconds(2));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
     if(m_stop == false)
     {
@@ -532,15 +558,16 @@ bool ConsoleUserHandler::isConcerned(int idToConfirm)
 
 void ConsoleUserHandler::launch()
 {
-    m_handlerThread->launch();
-    m_listenerThread->launch();
+    std::cout<<"> Console User Handler started"<<std::endl;
+    m_listenerThread = new std::thread(&ConsoleUserHandler::m_listener, this);
+    m_handlerThread = new std::thread(&ConsoleUserHandler::m_handler, this);
 }
 
 void ConsoleUserHandler::stop()
 {
     m_stop = true;
-    m_listenerThread->terminate();
-    m_handlerThread->wait();
+    m_listenerThread->~thread();
+    m_handlerThread->join();
 }
 
 string ConsoleUserHandler::formatWithSpaces(int spaceMax, const string& nomAiguillage)
@@ -693,4 +720,11 @@ int ConsoleUserHandler::getSafeInt(string annonce)
         }
     }
     return result;
+}
+
+nlohmann::json ConsoleUserHandler::save()
+{
+    nlohmann::json toReturn;
+    toReturn["dummy"] = "coucou";
+    return toReturn;
 }

@@ -19,7 +19,8 @@ class UserEvent
             ChangeAiguillageState,
             ConfirmPositions,
             AddAlimentation,
-            RemoveAlimentation
+            RemoveAlimentation,
+            RequestSave
         };
 
         struct AddAiguillageEvent
@@ -70,6 +71,11 @@ class UserEvent
             nlohmann::json comp;
         };
 
+        struct RequestSaveEvent
+        {
+
+        };
+
         //union
         //{
             AddAiguillageEvent addAiguillageEvent;
@@ -79,15 +85,17 @@ class UserEvent
             ConfirmPositionsEvent confirmPositionsEvent;
             AddAlimentationEvent addAlimentationEvent;
             RemoveAlimentationEvent removeAlimentationEvent;
+            RequestSaveEvent requestSaveEvent;
        // };
 
-        UserEvent(UserEventTypes type);
+        UserEvent(UserEventTypes type, nlohmann::json sender = nlohmann::json::object());
         //UserEvent(UserEvent const& b); deprecated
         /** Default destructor */
         virtual ~UserEvent();
 
         UserEventTypes getType();
         int getId();
+        nlohmann::json getSender();
 
 
     protected:
@@ -95,6 +103,7 @@ class UserEvent
         int m_id;
         static int m_currentAvailableId;
         static int getNextAvailableId();
+        nlohmann::json m_sender;
 };
 
 #endif // USEREVENT_H

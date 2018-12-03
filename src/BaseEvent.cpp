@@ -2,10 +2,11 @@
 
 using namespace std;
 
-BaseEvent::BaseEvent(BaseEvent::EventTypes type, int id)
+BaseEvent::BaseEvent(BaseEvent::EventTypes type, int id, nlohmann::json receiver)
 {
     m_type = type;
     m_eventId = id;
+    m_receiver = receiver;
 }
 
 BaseEvent::BaseEvent(BaseEvent::EventTypes type,int id, string param1String)
@@ -105,6 +106,10 @@ BaseEvent::EventTypes BaseEvent::getType()
 int BaseEvent::getId()
 {
     return m_eventId;
+}
+nlohmann::json BaseEvent::getReceiver()
+{
+    return m_receiver;
 }
 
 

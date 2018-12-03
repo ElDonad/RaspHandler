@@ -1,9 +1,48 @@
 #include "BaseAiguillage.h"
 #include "AiguillageHandler.h"
 
-BaseAiguillage::BaseAiguillage(std::vector<Direction>validDirections) : m_validDirections(validDirections)
+BaseAiguillage::BaseAiguillage(std::vector<Direction>validDirections) : m_validDirections(validDirections), m_serializer(this), m_classicSerializer(this)
 {
+    registerJSONNode();
+}
 
+BaseAiguillage::BaseAiguillage(std::vector<Direction> validDirections, nlohmann::json savedData) : m_validDirections(validDirections), m_serializer(this), m_classicSerializer(this)
+{
+    m_id = savedData["id"];
+    m_mode = savedData["mode"];
+    m_type = savedData["type"];
+    m_currentDirection = savedData["current_direction"];
+    m_targetDirection = savedData["target_direction"];
+    m_tag = savedData["tag"];
+    registerJSONNode();
+}
+void BaseAiguillage::registerJSONNode()
+{
+    m_serializer.registerJSonNode([=](BaseAiguillage* toSerialize)
+    {
+        nlohmann::json toReturn;
+        toReturn["id"] = toSerialize->m_id;
+        toReturn["mode"] = toSerialize->m_mode;
+        toReturn["type"] = toSerialize->m_type;
+        toReturn["current_direction"] = toSerialize->m_currentDirection;
+        toReturn["target_direction"] = toSerialize->m_targetDirection;
+        toReturn["tag"] = toSerialize->m_tag;
+
+        return toReturn;
+
+    }, "BaseAiguillage");
+
+    m_classicSerializer.registerJSonNode([=](BaseAiguillage* toSerialize)
+    {
+        nlohmann::json toReturn;
+        toReturn["type"] = toSerialize->getStringifiedType();
+        toReturn["id"] = toSerialize->m_id;
+        toReturn["current_direction"] = toSerialize->m_currentDirection;
+        toReturn["target_direction"] = toSerialize->m_targetDirection;
+        toReturn["tag"] = toSerialize->m_tag;
+
+        return toReturn;
+    });
 }
 
 BaseAiguillage::AiguillageType BaseAiguillage::getType()
@@ -18,36 +57,36 @@ BaseAiguillage::~BaseAiguillage()
 int BaseAiguillage::convertDirectionIntoInt(BaseAiguillage::Direction direction)
 {
     switch (direction)
-        {
-        case Direction::Left:
-            return 0;
+    {
+    case Direction::Left:
+        return 0;
 
-        case Direction::Middle:
-            return 2;
+    case Direction::Middle:
+        return 2;
 
-        case Direction::Right:
-            return 1;
+    case Direction::Right:
+        return 1;
 
-        default:
-            return -1;
-        }
+    default:
+        return -1;
+    }
 }
 
 BaseAiguillage::Direction BaseAiguillage::convertIntIntoDirection(int direction)
 {
     switch (direction)
-        {
-        case 0:
-            return Direction::Left;
+    {
+    case 0:
+        return Direction::Left;
 
-        case 1:
-            return Direction::Right;
+    case 1:
+        return Direction::Right;
 
-        case 2:
-            return Direction::Middle;
-        default:
-            return Direction::Invalid;
-        }
+    case 2:
+        return Direction::Middle;
+    default:
+        return Direction::Invalid;
+    }
 }
 
 std::string BaseAiguillage::getTag()
@@ -58,18 +97,18 @@ std::string BaseAiguillage::getTag()
 std::string BaseAiguillage::convertDirectionIntoString(Direction direction)
 {
     switch (direction)
-        {
-        case Direction::Left:
-            return "gauche";
+    {
+    case Direction::Left:
+        return "gauche";
 
-        case Direction::Right:
-            return "droite";
+    case Direction::Right:
+        return "droite";
 
-        case Direction::Invalid:
-            return "invalide";
-        default:
-            return "inconnue";
-        }
+    case Direction::Invalid:
+        return "invalide";
+    default:
+        return "inconnue";
+    }
 }
 
 BaseAiguillage::Direction BaseAiguillage::convertStringIntoDirection(std::string direction)
@@ -150,4 +189,50 @@ bool BaseAiguillage::isDisponible()
 std::vector<BaseAiguillage::Direction> BaseAiguillage::getValidDirections()
 {
     return m_validDirections;
+}
+
+//std::shared_ptr<nlohmann::json> BaseAiguillage::constructSpecificAspect(std::shared_ptr<nlohmann::json> toConstruct)
+//{
+//    nlohmann::json added = *toConstruct;
+//    m_id = added["id"];
+//    m_mode = added["mode"];
+//    m_type = added["type"];
+//    m_currentDirection = added["current_direction"];
+//    m_targetDirection = added["target_direction"];
+//    m_tag = added["tag"];
+//    return std::make_shared<nlohmann::json>(*toConstruct);
+//
+//}
+
+void BaseAiguillage::mergeJSon(std::shared_ptr<nlohmann::json> main, nlohmann::json& toMerge)
+{
+    for (auto it = toMerge.begin(); it != toMerge.end(); ++it)
+    {
+        main->emplace(it.key(), it.value());
+    }
+}
+
+nlohmann::json BaseAiguillage::save()
+{
+    return m_serializer.getTotalTree();
+}
+
+std::string BaseAiguillage::getStringifiedType()
+{
+    return "BaseAiguillage";
+}
+
+nlohmann::json BaseAiguillage::getClassicSerializedData()
+{
+    return m_classicSerializer.getTotalTree();
+}
+
+nlohmann::json BaseAiguillage::getCompInformations()
+{
+    return m_complementaryInformations;
+}
+
+void BaseAiguillage::setCompInformation(nlohmann::json newInfo, std::string identifier)
+{
+    m_complementaryInformations[identifier] = newInfo;
 }

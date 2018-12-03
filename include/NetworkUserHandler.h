@@ -4,67 +4,60 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <memory>
+#include <json.hpp>
+
+//pour la génération de clé aléatoire.
+#include <random>
+#include <algorithm>
 
 #include <UserHandler.h>
 #include <UserEvent.h>
 
-#include <SFML/System.hpp>
-#include <SFML/Network.hpp>
+#include <thread>
+#include "TCPServer.h"
 
 
 class EventHandler;
 
 class NetworkUserHandler : public UserHandler
 {
+
     public:
-        /** Default constructor */
-        NetworkUserHandler(EventHandler* parent);
-        /** Default destructor */
-        virtual ~NetworkUserHandler();
-        virtual void launch();
-        virtual void receiveAnswer(std::shared_ptr<BaseEvent> answer);
-        virtual void stop();
 
         struct Client
         {
-            sf::TcpSocket* socket;
-            sf::Clock previousConfirm;
-            std::string name;
+            Client(std::string newId){
+                id = newId;//!< cet id permet entre autres de savoir à quel utilisateur est adressé un event.
+            }
+            std::string id;
+            nlohmann::json personalSave;
         };
 
-        struct StoredEvent
-        {
-            Client *client;
-            int id;
-        };
-
+        /** Default constructor */
+        NetworkUserHandler(EventHandler* parent, nlohmann::json saveNode = nlohmann::json());
+        /** Default destructor */
+        virtual ~NetworkUserHandler();
+        virtual void launch();
+        virtual nlohmann::json save();
+        virtual void receiveAnswer(std::shared_ptr<BaseEvent> event);
 
     protected:
-        sf::Thread* m_listenerThread;//Ce thread sert uniquement à recevoir les demandes de connexion.
-        sf::TcpListener m_listenerListener;
+        EventHandler* m_parentEventHandler;
+        std::thread* m_serverThread;
+        std::vector<std::pair<Client, ASocket::Socket*> > m_clients;
 
-        sf::Thread* m_networkHandlerThread;//Ce thread reçoit et traite les paquets que les clients enregistrés lui envoient.
-        void m_listener();
-        void m_networkHandler();
+        CTCPServer m_listener;
+        void m_UserHandlerThread();
+        void serverTick();
+        std::string getNewId();
+        bool isIdTaken(std::string id);
+        nlohmann::json processItem(nlohmann::json toProcess, nlohmann::json sender);//!< Retourne un json vide, ou à envoyer à l'utilisateur correspondant.
 
-        sf::Thread* m_checkThread;//ce dernier thread gère les checks cycliques.
-        void m_check();
+        std::vector<std::string> socketReceive(ASocket::Socket*, bool wait = false);
 
-        std::vector <Client> m_clients;
-        std::vector <StoredEvent> m_storedEvents;
+        void broadcast(std::string toSend);
 
-        sf::Mutex m_Mclients;//mutex pour m_clients ET m_clientsSelector
-        sf::SocketSelector m_clientsSelector;
-
-        std::vector <std::string> returnFormatedPacket(std::string packet);
-
-        //p'tites fonctions utilitaires sympa
-        void broadcast(std::string message);
-        void sendToClient(const Client* client, std::string message);
-
-
-
-    private:
 };
 
 #endif // NETWORKUSERHANDLER_H

@@ -7,10 +7,20 @@ int AiguillageManager::m_nextAlimentationId = 1;
 
 AiguillageManager::AiguillageManager(Base* base) : m_base(base)
 {
-    m_aiguillageHandlers.push_back(std::shared_ptr<AiguillageHandler>(new DirectAiguillageHandler(this)));
-    m_aiguillageHandlers.back()->initializeId(this->getNextId());
+    std::shared_ptr<AiguillageHandler>direct (new DirectAiguillageHandler(this));
+    direct->launch();
+    m_aiguillageHandlers.push_back(direct);
+
     launch();
     //m_aiguillageHandlers.emplace(getNextId(), std::unique_ptr<AiguillageHandler> (new DirectAiguillageHandler(this)));
+}
+
+AiguillageManager::AiguillageManager(Base* base, nlohmann::json saveData) : m_base(base)
+{
+    std::shared_ptr<AiguillageHandler> direct (new DirectAiguillageHandler(this));
+    direct->backup(saveData["aiguillage_handlers"]["direct_aiguillage_handler"]);
+    m_aiguillageHandlers.push_back(direct);
+    direct->launch();
 }
 
 AiguillageManager::~AiguillageManager()
@@ -123,7 +133,7 @@ void AiguillageManager::proceedEvent(std::shared_ptr<UserEvent> event)
 
 // TODO (Elie#2#): Eventuellement lancer également le signal ChangingAiguillageStateAbortes/Confirmed (et gérer les erreurs aussi...)
 
-                std::shared_ptr<BaseEvent> retourEvent (new BaseEvent(BaseEvent::EventTypes::AiguillageStateChanged,0));
+                std::shared_ptr<BaseEvent> retourEvent (new BaseEvent(BaseEvent::EventTypes::AiguillageStateChanged,0, event->getSender()));
                 retourEvent->aiguillageStateChangedEvent.aiguillageHandlerId = handler->getId();
                 retourEvent->aiguillageStateChangedEvent.aiguillageId = aiguillage->getId();
                 retourEvent->aiguillageStateChangedEvent.direction = aiguillage->getTargetDirection();
@@ -338,10 +348,24 @@ void AiguillageManager::proceedEvent(std::shared_ptr<AiguillageHandlerEvent> eve
                     r_event2->aiguillageRemovedEvent.tag = event->aiguillageDeletedEvent.aiguillageDeleted;
                     m_base->transmitEvent(r_event2);
                 }
-                else
+                else if (event->aiguillageDeletedEvent.done == false)
                 {
-// TODO (Elie#5#): à finir ...
-//
+                    std::shared_ptr<BaseEvent> abortedEvent (new BaseEvent(BaseEvent::EventTypes::RemovingAiguillageAborted,event->getCallbackId()));
+
+                    switch (event->aiguillageDeletedEvent.errorType)
+                    {
+                    case AiguillageHandlerEvent::AiguillageDeletedEvent::ErrorTypes::AiguillageNotFound:
+                        {
+                            abortedEvent->removingAiguillageAbortedEvent.errors.push_back("Aiguillage Not Found");
+                        }
+                    case AiguillageHandlerEvent::AiguillageDeletedEvent::ErrorTypes::Undefined:
+                        {
+                            abortedEvent->removingAiguillageAbortedEvent.errors.push_back("Undefined Error");
+                        }
+                    }
+                    m_base->transmitEvent(abortedEvent);
+
+
 
                 }
                 break;
@@ -378,5 +402,14 @@ std::pair<nlohmann::json,std::shared_ptr<BaseAiguillage>> AiguillageManager::fin
     {
         return std::pair<nlohmann::json,std::shared_ptr<BaseAiguillage>> ();
     }
+}
+
+nlohmann::json AiguillageManager::save()
+{
+    nlohmann::json toReturn;
+    toReturn["aiguillage_handlers"]["direct_aiguillage_handler"] = m_aiguillageHandlers[0]->save();
+    //ici les autres aiguillageHandlers.
+
+    return toReturn;
 }
 

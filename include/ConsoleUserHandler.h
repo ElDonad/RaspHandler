@@ -8,25 +8,30 @@
 #include <exception>
 #include "AiguillageHandler.h"
 
+#include <thread>
+#include <mutex>
+
 class EventHandler;
 class ConsoleUserHandler : public UserHandler
 {
     public:
         /** Default constructor */
         ConsoleUserHandler(EventHandler* parent);
+        ConsoleUserHandler(EventHandler* parent, nlohmann::json saveData);
         /** Default destructor */
         virtual ~ConsoleUserHandler();
         virtual void launch();
         virtual void receiveAnswer(std::shared_ptr<BaseEvent> answer);
         virtual void stop();
+        virtual nlohmann::json save();
 
     protected:
         std::vector <int> m_storedEventId;
-        sf::Thread *m_listenerThread;
-        sf::Mutex m_Mentry;
+        std::thread *m_listenerThread;
+        std::mutex m_Mentry;
         void m_listener();
 
-        sf::Thread* m_handlerThread;
+        std::thread* m_handlerThread;
         void m_handler();
 
         std::string m_entry;
@@ -44,7 +49,7 @@ class ConsoleUserHandler : public UserHandler
         };
 
         std::vector<m_Aiguillage> m_storedAiguillages;
-        sf::Mutex m_MstoredAiguillages;
+        std::mutex m_MstoredAiguillages;
 
         //UTILITAIRES
         bool isConcerned(int idToConfirm);

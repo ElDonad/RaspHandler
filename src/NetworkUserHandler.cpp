@@ -3,357 +3,249 @@
 
 using namespace std;
 
-NetworkUserHandler::NetworkUserHandler(EventHandler* parent)
+NetworkUserHandler::NetworkUserHandler(EventHandler* parent, nlohmann::json saveNode) : m_listener([](const std::string& strLogMsg) {/*std::cout<<strLogMsg<<std::endl;*/}, "2121")
 {
-//    m_listenerThread = new sf::Thread(NetworkUserHandler::m_listener, this);
-//    m_networkHandlerThread = new sf::Thread(NetworkUserHandler::m_networkHandler, this);
-//    m_checkThread = new sf::Thread(NetworkUserHandler::m_check, this);
-//    m_stop = false;
-//    m_parentEventHandler = parent;
-}
+    m_parentEventHandler = parent;
+    m_stop = false;
+    if (saveNode != nlohmann::json())//sauvegarde requise
+    {
+        //Sauvegarde data, plus tard...
+    }
 
-NetworkUserHandler::~NetworkUserHandler()
-{
-//    delete m_listenerThread;
-//    delete m_networkHandlerThread;
-//    delete m_checkThread;
-}
-
-void NetworkUserHandler::m_listener()
-{
-//    if (m_listenerListener.listen(11111) != sf::Socket::Done)
-//    {
-//        cout<<"error socket"<<endl;
-//    }
-//
-//    while (isStopping() != true)
-//    {
-//
-//        sf::TcpSocket* client = new sf::TcpSocket();
-//        try{
-//
-//            int truc = m_listenerListener.accept(*client);
-//
-//            if (truc == sf::TcpSocket::Error)
-//                throw truc;
-//        }
-//        catch (sf::TcpSocket::Status const& e )
-//        {
-//            if (e == sf::TcpSocket::Error)
-//                cout<<"Problème grave ! Moi pas savoir quoi faire"<<endl;
-//            int t;
-//            cin>>t;
-//        }
-//
-//        Client clientStruct;
-//        clientStruct.socket = client;
-//
-//        m_clients.push_back(clientStruct);
-//        client->setBlocking(false);
-//        m_clientsSelector.add(*client);
-//
-//        sf::Packet requestPacket;
-//        requestPacket<<"1001|";
-//        m_clients.back().socket->send(requestPacket);
-//        sf::sleep(sf::milliseconds(5));
-//
-//    }
-}
-
-void NetworkUserHandler::m_check()
-{
-//    while (isStopping() != true)
-//    {
-//        //1. Vérifier qu'aucun des clients n'est en idle depuis plus de 5s :
-//        m_Mclients.lock();
-//        for (int loop = 0; loop != m_clients.size(); loop++)
-//        {
-//            if (m_clients[loop].previousConfirm.getElapsedTime() >= sf::Time(sf::seconds(100000)))
-//            {
-//                delete m_clients[loop].socket;
-//                m_clients.erase(m_clients.begin() + loop);
-//            }
-//        }
-//
-//        //end
-//        sf::sleep(sf::milliseconds(10));
-//    }
-}
-
-void NetworkUserHandler::m_networkHandler()
-{
-//    while (isStopping() != true)
-//    {
-//        Client* selectedClient;//client en attente de réponse
-//        //Gestion des events
-//        m_Mclients.lock();
-//        m_clientsSelector.wait(sf::milliseconds(50));
-//        sf::TcpSocket* ready;
-//        bool isSelected = false;
-//        for (int loop = 0; loop != m_clients.size(); loop++)
-//        {
-//            ready = m_clients[loop].socket;
-//            if (m_clientsSelector.isReady(*ready))
-//                {
-//                    selectedClient = &m_clients[loop];
-//                    isSelected = true;
-//                    break;
-//                }
-//        }
-//        if (isSelected == false)
-//        {
-//            continue;
-//        }
-//
-//        if (m_clients.size() == 0)
-//        {
-//            sf::sleep(sf::milliseconds(5));
-//            continue;
-//        }
-//        sf::Packet packetReceived;
-//        ready->receive(packetReceived);
-////      cout<<"Packet recu : ";
-//        string receivedData;
-//        packetReceived>>receivedData;
-//        cout<<receivedData<<endl;
-//
-//        vector <string> formatedData = returnFormatedPacket(receivedData);
-//        int orderType = std::stoi (formatedData[0]);
-//
-//        switch (orderType)
-//        {
-//        case 2101://ajout d'aiguillage
-//            {
-//                vector<string> args;
-//                args.push_back(formatedData[1]);
-//                args.push_back(formatedData[2]);
-//                args.push_back(formatedData[3]);
-//
-//                UserEvent event (UserEvent::AddAiguillage, args);
-//                m_parentEventHandler->transmitEvent(event);
-//                int eventId = event.getId();
-//                m_storedEvents.push_back(StoredEvent{selectedClient, eventId});
-//                break;
-//            }
-//
-//        case 2109://suppression d'aiguillage
-//            {
-//                vector<string> args;
-//                args.push_back(formatedData[1]);
-//
-//                UserEvent event(UserEvent::AddAiguillage, args);
-//                m_parentEventHandler->transmitEvent(event);
-//                int eventId = event.getId();
-//                m_storedEvents.push_back(StoredEvent{selectedClient, eventId});
-//                break;
-//            }
-//
-//        case 2105://confirmer les positions
-//            {
-//                vector<string> args;
-//
-//                UserEvent event(UserEvent::ConfirmPositions, args);
-//                m_parentEventHandler->transmitEvent(event);
-//                int eventId = event.getId();
-//                m_storedEvents.push_back(StoredEvent{selectedClient, eventId});
-//                break;
-//            }
-//
-//        case 9999://stopper
-//            {
-//                vector<string> args;
-//                args.push_back(formatedData[1]);
-//
-//                UserEvent event(UserEvent::Stop, args);
-//                m_parentEventHandler->transmitEvent(event);
-//                int eventId = event.getId();
-//                m_storedEvents.push_back(StoredEvent{selectedClient, eventId});
-//                break;
-//            }
-//
-//        case 1001://premier pattern
-//            {
-//                selectedClient->name = formatedData[1];
-//                cout<<"Client " + selectedClient->name + " enregistré avec succès."<<endl;
-//                break;
-//            }
-//
-//        case 1010:
-//            {
-//
-//            }
-//
-//        case 2510://change aiguillage state
-//            {
-//                vector<string>args;
-//                args.push_back(formatedData[1]);
-//                args.push_back(formatedData[2]);
-//                UserEvent event(UserEvent::ChangeAiguillageState,args);
-//                int event_id = event.getId();
-//                m_parentEventHandler->transmitEvent(event);
-//                m_storedEvents.push_back(StoredEvent{selectedClient, event_id});
-//            }
-//        }
-//    }
 }
 
 void NetworkUserHandler::launch()
 {
-//    m_listenerThread->launch();
-//    m_networkHandlerThread->launch();
-//    m_checkThread->launch();
-//    cout<<"> Network Handler launched"<<endl;
+    m_serverThread = new std::thread(&NetworkUserHandler::m_UserHandlerThread, this);
 }
 
-void NetworkUserHandler::receiveAnswer(std::shared_ptr<BaseEvent> base)
+void NetworkUserHandler::m_UserHandlerThread()
 {
-//    cout<<"Nouvel event envoyé : "<<base.getType()<<endl;
-//    int eventId = base.getId();
-//    Client *concernedClient;
-//    bool isConcerned = false;
-//    for (int loop = 0; loop != m_storedEvents.size(); loop++)
-//    {
-//        if (m_storedEvents[loop].id == eventId)
-//        {
-//            isConcerned == true;
-//            concernedClient = m_storedEvents[loop].client;
-//            break;
-//        }
-//    }
-//
-//        switch (base.getType())
-//        {
-//        case BaseEvent::AiguillageAdded://envoyé à tous les clients pour signaler qu'il leur faut update leur liste d'aiguillages
-//            {
-//                string message;
-//                message = message + "2111|" + base.aiguillageAddedEvent.tag + "|" + std::to_string(base.aiguillageAddedEvent.pinG) + "|" + std::to_string(base.aiguillageAddedEvent.pinD) + "|" + std::to_string(base.aiguillageAddedEvent.direction);
-//                broadcast(message);
-//                break;
-//            }
-//
-//        case BaseEvent::AddingAiguillageAborted:
-//            {
-//                string message = "2901|";
-//                vector<string> errors;
-//                for (int loop = 0; loop != errors.size(); loop++)
-//                {
-//                    message = message + errors[loop] + "|";
-//                }
-//                if (eventId == 0)
-//                    broadcast(message);
-//                else
-//                    sendToClient(concernedClient, message);
-//                break;
-//            }
-//
-//        case BaseEvent::AddingAiguillageConfirmed://envoyé à la personne qui a ordonné l'ajout de l'aiguillage - pas de broadcast
-//            {
-//                string message;
-//                message = message + "3111|" + base.addingAiguillageConfirmedEvent.tag;
-//                sendToClient(concernedClient, message);
-//                break;
-//            }
-//
-//        case BaseEvent::AiguillageRemoved:
-//            {
-//                string message;
-//                message = message + "2199|" + base.aiguillageRemovedEvent.tag;
-//                broadcast(message);
-//                break;
-//            }
-//
-//        case BaseEvent::AiguillageStateChanged://broadcast pour le signaler à tous les clients
-//            {
-//                string message;
-//                message = message + "2501|" + std::to_string(base.aiguillageStateChangedEvent.direction) + "|" + base.aiguillageStateChangedEvent.tag;
-//                broadcast(message);
-//                break;
-//            }
-//
-//        case BaseEvent::Confirmed:
-//            {
-//                string message = "2115";
-//                sendToClient(concernedClient, message);
-//                break;
-//            }
-//
-//        case BaseEvent::RemovingAiguillageAborted:
-//            {
-//                string message;
-//                vector<string> errors = base.removingAiguillageAbortedEvent.errors;
-//                message = message + "2991|";
-//                for (int loop = 0; loop != errors.size(); loop++)
-//                {
-//                    message = message + errors[loop] + "|";
-//                }
-//                sendToClient(concernedClient, message);
-//                break;
-//            }
-//
-//        case BaseEvent::RemovingAiguillageConfirmed:
-//            {
-//                string message;
-//                message + message + "3911|" + base.removingAiguillageConfirmedEvent.tag;
-//                sendToClient(concernedClient, message);
-//                break;
-//            }
-//
-//        case BaseEvent::Stopping:
-//            {
-//                string message;
-//                message = message + "3999|" + base.stoppingEvent.raison;
-//                break;
-//            }
-//
-//        }
+    while (m_stop == false)
+    {
+        serverTick();
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
 }
 
-vector <string> NetworkUserHandler::returnFormatedPacket(string packet)
+nlohmann::json NetworkUserHandler::processItem(nlohmann::json toProcess, nlohmann::json client)
 {
-//    vector <string> toReturn;
-//    int nextSegment = 0;
-//    int offset = 0;
-//
-//    for (int loop = 0; loop != packet.size(); loop++)
-//    {
-//        if (packet[loop] == '|')
-//        {
-//            toReturn.push_back(packet.substr(nextSegment + offset, loop - nextSegment - offset));
-//            //cout<<"Formatage packet : nouveau fragment : "<<toReturn.back()<<endl;
-//            nextSegment = loop;
-//            offset=1;
-//        }
-//    }
-//    toReturn.push_back(packet.substr(nextSegment + offset));
-//    //cout<<"Formatage packet : fragment final : "<<toReturn.back()<<endl;
-//    return toReturn;
+    if (toProcess["event_type"] == "GetAiguillages")
+    {
+        std::cout<<"Demande de récupération d'aiguillage recue"<<std::endl;
+        nlohmann::json toReturn;
+        toReturn["event_type"] = "GotAiguillages";
+        toReturn["aiguillages"] = nlohmann::json::array();
+        std::vector<std::pair<nlohmann::json, std::weak_ptr<BaseAiguillage>>> aiguillages = m_parentEventHandler->getAiguillage();
+        for (auto it = aiguillages.begin(); it != aiguillages.end(); ++it)
+        {
+            toReturn["aiguillages"][std::distance(aiguillages.begin(), it)] = it->second.lock()->getClassicSerializedData();
+            toReturn["aiguillages"][std::distance(aiguillages.begin(), it)]["aiguillage_handler_id"] = it->second.lock()->getParentAiguillageHandler().lock()->getId();
+
+        }
+        std::cout<<toReturn.dump(4);
+        return toReturn;
+
+    }
+
+    else if (toProcess["event_type"] == "SwitchAiguillage")
+    {
+        std::cout<<"switching aiguillage..."<<std::endl;
+        std::shared_ptr<UserEvent> event (new UserEvent(UserEvent::UserEventTypes::ChangeAiguillageState, client));
+        event->changeAiguillageStateEvent.aiguillageHandlerId = toProcess["event_handler_id"];
+        event->changeAiguillageStateEvent.aiguillageId = toProcess["aiguillage_id"];
+        event->changeAiguillageStateEvent.targetState = BaseAiguillage::convertStringIntoDirection(toProcess["target_direction"]);
+        m_parentEventHandler->transmitEvent(event);
+        return nlohmann::json();
+    }
+
+    else if (!toProcess.empty())
+    {
+        std::cout<<"erreur de réception de paquet"<<std::endl;
+    }
+
+    return nlohmann::json();
+}
+
+void NetworkUserHandler::serverTick()
+{
+    ASocket::Socket* newClient = new ASocket::Socket;
+
+    if (m_listener.Listen(*newClient, 5))
+    {
+        std::cout<<"> Nouveau client recu."<<std::endl;
+        std::string headerMessage = socketReceive(newClient, true)[0];
+        nlohmann::json gotHeader = nlohmann::json::parse(headerMessage);
+        nlohmann::json gotHeaderEvent;
+        gotHeaderEvent["event_type"] = "Logged";
+        if (gotHeader["event_type"] == "SendHeadMessage")
+        {
+            if (gotHeader["wish_recover"] == true && !isIdTaken(gotHeader["previous_key"]))
+            {
+                for (auto it = m_clients.begin(); it != m_clients.end(); ++it)
+                {
+                    if (it->first.id == gotHeader["previous_key"])
+                    {
+                        std::string key = gotHeader["previous_key"];
+                        m_clients.push_back(std::pair<Client, ASocket::Socket*>(key, newClient));
+                        gotHeaderEvent["is_recovered"] = true;
+                        gotHeaderEvent["key"] = key;
+                    }
+                }
+                std::cout<<"> Compte du client recupere"<<std::endl;
+            }
+            else
+            {
+                Client truc(getNewId());
+                m_clients.push_back(std::pair<Client, ASocket::Socket*>(truc, newClient));
+                std::cout<<"Compte du client cree"<<std::endl;
+                gotHeaderEvent["is_recovered"] = false;
+                gotHeaderEvent["key"] = truc.id;
+            }
+            m_listener.Send(*newClient, gotHeaderEvent.dump());
+        }
+        else
+        {
+            std::cout<<"erreur de reception"<<std::endl;
+        }
+    }
+
+    //2. Gestion des évènements
+    for (auto it = m_clients.begin(); it != m_clients.end(); ++it)
+    {
+        std::vector<std::string> received = socketReceive(it->second);
+        for (auto it2 = received.begin(); it2 != received.end(); ++it2)
+        {
+            nlohmann::json toProcess = nlohmann::json::parse(*it2);
+            nlohmann::json sender;
+            sender["id"] = it->first.id;
+            nlohmann::json toSend = processItem(toProcess, sender);
+            if (!toSend.empty())
+            {
+                m_listener.Send(*(it->second), toSend.dump());
+                std::cout<<"Donnees envoyees"<<std::endl;
+            }
+        }
+    }
+
 
 }
 
-void NetworkUserHandler::broadcast(string message)
+NetworkUserHandler::~NetworkUserHandler()
 {
-//    sf::Packet broadcastPacket;
-//    broadcastPacket<<message;
-//    for (int loop = 0; loop != m_clients.size(); loop++)
-//    {
-//        m_clients[loop].socket->send(broadcastPacket);
-//    }
+    for (auto it = m_clients.begin(); it != m_clients.end(); ++it)
+    {
+        delete it->second;
+    }
 }
 
-void NetworkUserHandler::sendToClient(const Client* client, string message)
+void NetworkUserHandler::receiveAnswer(std::shared_ptr<BaseEvent> event)
 {
-//    sf::Packet packetToSend;
-//    packetToSend<<message;
-//    client->socket->send(packetToSend);
+    ASocket::Socket* client = nullptr;
+    if (event->getReceiver()["id"] != 0)
+    {
+        for (auto it = m_clients.begin(); it != m_clients.end(); ++it)
+        {
+            if(it->first.id == event->getReceiver()["id"])
+            {
+                client = it->second;
+            }
+        }
+    }
+    switch (event->getType())
+    {
+
+    case BaseEvent::AiguillageAdded:
+        {
+            nlohmann::json toSend;
+// TODO (Elie#9#): Event provisoire pour forcer le rechargement. A terme faire quelque chose de plus propre.
+
+            toSend["event_type"] = "dirty";
+            m_listener.Send(*client, toSend.dump());
+            break;
+        }
+
+    case BaseEvent::AiguillageStateChanged:
+        {
+            nlohmann::json toSend;
+
+            toSend["event_type"] = "dirty";
+            broadcast(toSend.dump());
+            break;
+        }
+    }
 }
 
-void NetworkUserHandler::stop()
+nlohmann::json NetworkUserHandler::save()
 {
-//    m_MisStopping.lock();
-//    m_stop = true;
-//    m_MisStopping.unlock();
-//    m_listenerThread->wait();
-//    m_checkThread->wait();
+    return nlohmann::json({});
+}
+
+std::string NetworkUserHandler::getNewId()
+{
+    std::string toReturn;
+    const char characters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (int loop = 0; loop != 10; ++loop)
+    {
+        toReturn += characters[rand() % (sizeof(characters) - 1)];
+    }
+    return toReturn;
+}
+
+bool NetworkUserHandler::isIdTaken(std::string id)
+{
+    for (auto it = m_clients.begin(); it != m_clients.end(); ++it)
+    {
+        if (it->first.id == id) return true;
+    }
+    return false;
+}
+
+std::vector<std::string> NetworkUserHandler::socketReceive(ASocket::Socket* toReceive, bool wait)
+{
+    char buffer[1024] = {0};
+    std::fill( buffer, buffer + sizeof( buffer ), 0 );
+    std::vector<std::string> toReturn;
+    std::string message;
+    int received;//taille totale recue
+    int hasToTransfer;// retour direct de la socket, utile dans ce scope car utilisé dans la boucle conditionnelle
+
+    do
+    {
+        std::size_t expectedArg;
+        hasToTransfer = ASocket::SelectSockets(toReceive, 1, 5, expectedArg);
+        if (hasToTransfer == 1){
+            received = m_listener.Receive(*toReceive, buffer, 1023, false);
+            message.append(buffer, 0, received);
+        }
+        else if (hasToTransfer == 0) continue;
+        else if (hasToTransfer == -1) std::cerr<<"Erreur lors de lecture de la socket"<<std::endl;
+        std::fill( buffer, buffer + sizeof( buffer ), 0 );
+    }while (hasToTransfer != 0 || wait && message.size() == 0);
+    if (!message.empty())
+    {
+
+        for (auto it = message.begin(); it != message.end() - 1; ++it)
+        {
+            if (*it == '\0003')
+            {
+                toReturn.push_back(std::string(message.begin(), it));
+                message = std::string(it + 1, message.end());
+            }
+        }
+        toReturn.push_back(std::string(message.begin(), message.end() - 1));
+    }
+
+
+    return toReturn;
+}
+
+void NetworkUserHandler::broadcast(std::string toSend)
+{
+    for (auto it = m_clients.begin(); it != m_clients.end(); ++it)
+    {
+        m_listener.Send(*(it->second), toSend);
+    }
 }
 
 

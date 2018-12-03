@@ -1,9 +1,14 @@
 #include "SimpleAiguillage1.h"
 
-SimpleAiguillage1::SimpleAiguillage1(std::string name,int pin,std::weak_ptr<AiguillageHandler> parent,PinState defaultLeftPinState) : SimpleAiguillage({Direction::Left,Direction::Right})
+SimpleAiguillage1::SimpleAiguillage1(std::string name,int pin,std::weak_ptr<AiguillageHandler> parent,PinState defaultLeftPinState) : SimpleAiguillage(std::vector<Direction>(
 {
+    Direction::Left,Direction::Right
+}))
+{
+    m_parent = parent;
     m_tag = name;
-    m_directionsMap = {
+    m_directionsMap =
+    {
         {Direction::Left, SinglePinModePin(pin,defaultLeftPinState)},
         {Direction::Right, SinglePinModePin(pin, getInvertedPinState(defaultLeftPinState))}
     };
@@ -13,15 +18,21 @@ SimpleAiguillage1::SimpleAiguillage1(std::string name,int pin,std::weak_ptr<Aigu
     //thread
     m_isDisponible = true;
     m_id = getNextDisponibleId();
+    registerToSerializer();
 }
 
-SimpleAiguillage1::SimpleAiguillage1(SimpleAiguillage1::AiguillageParams* params, std::weak_ptr<AiguillageHandler> parent) : SimpleAiguillage(std::vector<Direction>({Direction::Left,Direction::Right}))
+SimpleAiguillage1::SimpleAiguillage1(SimpleAiguillage1::AiguillageParams* params, std::weak_ptr<AiguillageHandler> parent) : SimpleAiguillage(std::vector<Direction>(
 {
+    Direction::Left,Direction::Right
+}))
+{
+    m_parent = parent;
     m_type = AiguillageType::SimpleAiguillage1;
     SimpleAiguillage1::AiguillageParams* definitiveParams = dynamic_cast<SimpleAiguillage1::AiguillageParams*>(params);
     m_tag = definitiveParams->name;
     int pin = definitiveParams->leftDirectionPin.pinNumber;
-    m_directionsMap = std::map<BaseAiguillage::Direction, SimpleAiguillage::SinglePinModePin>{
+    m_directionsMap = std::map<BaseAiguillage::Direction, SimpleAiguillage::SinglePinModePin>
+    {
         {Direction::Left, definitiveParams->leftDirectionPin},
         {Direction::Right, definitiveParams->rightDirectionPin}
     };
@@ -38,7 +49,29 @@ SimpleAiguillage1::SimpleAiguillage1(SimpleAiguillage1::AiguillageParams* params
 
     delete params;
     m_id = getNextDisponibleId();
+    registerToSerializer();
+
+//    //DEBUG
+//    std::ofstream f("debug.json",std::ios::out|std::ios::trunc);
+//
+//    f<<m_serializer.getTotalTree();
+//    f.close();
 }
+
+SimpleAiguillage1::SimpleAiguillage1(nlohmann::json toConstruct, std::weak_ptr<AiguillageHandler> parent) : SimpleAiguillage( std::vector<Direction>(
+{
+    Direction::Left,Direction::Right
+}), toConstruct)
+{
+    m_parent = parent;
+    m_isDisponible = true;
+    registerToSerializer();
+}
+
+//SimpleAiguillage1::SimpleAiguillage1(nlohmann::json backup,std::weak_ptr<AiguillageHandler> parent) : SimpleAiguillage(backup)
+//{
+//
+//}
 
 //SimpleAiguillage1::~SimpleAiguillage1()
 //{
@@ -51,16 +84,16 @@ bool SimpleAiguillage1::changeSens(Direction newDirection, std::vector<ErrorsAig
     {
         if (newDirection != m_targetDirection)
         {
-             if (m_isDisponible == true)
-             {
+            if (m_isDisponible == true)
+            {
                 m_targetDirection = newDirection;
                 return true;
-             }
-             else if (m_isDisponible == false)
-             {
-                 errors.push_back(ErrorsAiguillage::Indisponible);
-                 return false;
-             }
+            }
+            else if (m_isDisponible == false)
+            {
+                errors.push_back(ErrorsAiguillage::Indisponible);
+                return false;
+            }
         }
 
         else
@@ -103,6 +136,25 @@ std::vector <int> SimpleAiguillage1::getUsedPins()
 SimpleAiguillage1::Direction SimpleAiguillage1::getTargetDirection()
 {
     return m_targetDirection;
+}
+
+void SimpleAiguillage1::registerToSerializer()
+{
+    m_serializer.registerJSonNode([=](BaseAiguillage*)
+    {
+        return nlohmann::json();
+    },"SimpleAiguillage1");
+
+    m_classicSerializer.registerJSonNode([=](BaseAiguillage*)
+    {
+        return nlohmann::json();
+    },"SimpleAiguillage1");
+
+}
+
+std::string SimpleAiguillage1::getStringifiedType()
+{
+    return "SimpleAiguillage1";
 }
 
 

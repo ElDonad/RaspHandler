@@ -2,6 +2,7 @@
 #define SIMPLEAIGUILLAGE1_H
 
 #include <SimpleAiguillage.h>
+#include <fstream>
 
 class AiguillageManager;
 class SimpleAiguillage1 : public SimpleAiguillage
@@ -17,6 +18,8 @@ class SimpleAiguillage1 : public SimpleAiguillage
         /** Default constructor */
         SimpleAiguillage1(std::string name, int pin, std::weak_ptr<AiguillageHandler> parent, PinState defaultLeftPinState = PinState::Unactivated);
         SimpleAiguillage1(SimpleAiguillage1::AiguillageParams* params, std::weak_ptr<AiguillageHandler> parent);
+        SimpleAiguillage1(nlohmann::json params, std::weak_ptr<AiguillageHandler> parent);
+        //SimpleAiguillage1(nlohmann::json backup, std::weak_ptr<AiguillageHandler> parent);
         /** Default destructor */
         //virtual ~SimpleAiguillage1();
         virtual bool changeSens(Direction direction, std::vector<ErrorsAiguillage>& errors);
@@ -27,8 +30,10 @@ class SimpleAiguillage1 : public SimpleAiguillage
 
         virtual std::vector<int> getUsedPins();
         virtual void directionChanger();
+        virtual std::string getStringifiedType();
 
     protected:
+        void registerToSerializer();
 
 };
 

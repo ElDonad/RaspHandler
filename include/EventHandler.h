@@ -3,11 +3,13 @@
 
 #include <iostream>
 #include <vector>
-#include <SFML/System.hpp>
 #include <memory>
 
 #include "UserHandler.h"
 #include "AiguillageManager.h"//UNIQUEMENT pour la struct Alimentation.
+
+#include <thread>
+#include <mutex>
 
 class Base;
 class BaseEvent;
@@ -20,6 +22,7 @@ class EventHandler
     public:
         /** Default constructor */
         EventHandler(Base* parent);
+        EventHandler(Base* parent, nlohmann::json save);
         /** Default destructor */
         virtual ~EventHandler();
         void eventHandlerThread();
@@ -31,6 +34,7 @@ class EventHandler
         void stop();
         bool isStoping();
         void launch();
+        nlohmann::json save();
 
         std::vector<std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage>>> getAiguillage();//!< Renvoie une map qui associe un aiguillage à l'id de son AiguillageHandler.
 // TODO (Elie#1#): Ajouter la fonction findAlimentationById() que j'ai oubliée... ...
@@ -44,10 +48,11 @@ class EventHandler
     private:
         Base *m_base;
         std::vector <UserHandler*> m_userHandlers;
-        sf::Thread* m_handlerThread;
+        std::thread* m_handlerThread;
 
         bool m_isStopping;
-        sf::Mutex m_MIsStopping;
+        std::mutex m_MIsStopping;
+        std::string m_dummyString;
 
 
 

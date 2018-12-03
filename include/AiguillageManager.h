@@ -41,6 +41,7 @@ class AiguillageManager
 
         */
         AiguillageManager(Base* base);
+        AiguillageManager(Base* base, nlohmann::json saveData);
         /** Default destructor */
         virtual ~AiguillageManager();
         //! \brief Demarre le manager
@@ -70,6 +71,7 @@ class AiguillageManager
 
         std::vector<std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage>>> getAiguillages();//!<Renvoie la liste des aiguillages.
         std::pair<nlohmann::json,std::shared_ptr<BaseAiguillage>> findAiguillageById(int aiguillageHandler,int aiguillageId, bool* success);
+        nlohmann::json save();
     protected:
         std::vector<std::shared_ptr<AiguillageHandler> > m_aiguillageHandlers;//!<Les aiguillageHandler.
 
@@ -85,6 +87,7 @@ class AiguillageManager
 
         static int m_nextAlimentationId;
         int getAlimId();
+
 
     private:
 };

@@ -4,10 +4,11 @@ using namespace std;
 
 int UserEvent::m_currentAvailableId = 0;
 
-UserEvent::UserEvent(UserEvent::UserEventTypes type)
+UserEvent::UserEvent(UserEvent::UserEventTypes type, nlohmann::json sender)
 {
     m_userEventType = type;
     m_id = getNextAvailableId();
+    m_sender = sender;
 
 }
 
@@ -45,3 +46,8 @@ int UserEvent::getId()
         }
     }
 }*/
+
+nlohmann::json UserEvent::getSender()
+{
+    return m_sender;
+}

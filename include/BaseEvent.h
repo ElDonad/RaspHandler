@@ -156,12 +156,13 @@ class BaseEvent
         };
 
         BaseEvent(EventTypes type, int id, std::string param1String);
-        BaseEvent(EventTypes type, int id);
+        BaseEvent(EventTypes type, int id, nlohmann::json receiver = nlohmann::json::object());
         BaseEvent(EventTypes type, int id, std::string param1String, int param2Int);
         BaseEvent(EventTypes type, int id, std::vector<std::string> params);/**<  le constructeur utilisé par défaut pour TOUS les autres types de paramètres*/
 
         EventTypes getType();
         int getId();
+        nlohmann::json getReceiver();
 
         /** Default destructor */
         virtual ~BaseEvent();
@@ -193,6 +194,7 @@ class BaseEvent
     protected:
         EventTypes m_type;
         int m_eventId;
+        nlohmann::json m_receiver;
 
 };
 

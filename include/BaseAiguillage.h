@@ -6,7 +6,8 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <SFML/System.hpp>
+#include "json.hpp"
+#include "TreeSerializer.h"
 
 class AiguillageHandler;
 class BaseAiguillage
@@ -50,6 +51,21 @@ class BaseAiguillage
             AiguillageHandlerIssue//!< En cas de problème au sein de l'aiguillageHandler par exemple (une déconnexion ?)
 
         };
+
+        /** Une fonction qui retourne un json simplifié de l'aiguillage. Utile pour les communications réseau.
+
+        Structure du fichier :
+
+        - type : le type de l'aiguillage, stringified
+        - id : l'id de l'aiguillage
+        - current_direction : la direction courante de l'aiguillage.
+        - tag : le nom de l'aiguillage.
+
+        d'autres données peuvent être ajoutées plus tard, en utilisant toujours le système du serializer.
+
+        */
+        virtual nlohmann::json getClassicSerializedData();
+
         void setIndisponible(IndisponibilityReasons reason);
         void setIndisponible(std::vector<IndisponibilityReasons> reasons);
         bool setDisponible(IndisponibilityReasons reason);//!< Supprime la raison indiquée du tableau des raisons d'indisponibilité. Il est à noter que lorsuq'il n' a plus d'indisponiblilité, l'aiguillage est à nouveau considéré comme disponible, et donc va se réactiver en confirmant ses positions. @return l'état (disponible ou indisponible) à la fin de l'opération.
@@ -57,6 +73,10 @@ class BaseAiguillage
         bool isDisponible();
         /** Default constructor */
         BaseAiguillage(std::vector<Direction>validDirections);
+        BaseAiguillage(std::vector<Direction> validDirections, nlohmann::json saveData);
+        /**Constructeur à partir de noeud de sauvegarde */
+        //BaseAiguillage(nlohmann::json backup);
+
         virtual bool changeSens(Direction newDirection, std::vector<ErrorsAiguillage> &errors)=0;
         virtual bool changeSens(int direction, std::vector<ErrorsAiguillage> &errors)=0;
 
@@ -84,30 +104,41 @@ class BaseAiguillage
         };
         virtual std::vector<Direction> getValidDirections();
         virtual void directionChanger()=0;
+        nlohmann::json save();
+        virtual std::string getStringifiedType();
+
+        static Direction convertIntIntoDirection(int direction);
+        static int convertDirectionIntoInt(Direction direction);
+
+        static std::string convertDirectionIntoString(Direction direction);
+        static Direction convertStringIntoDirection(std::string direction);
+
+        nlohmann::json getCompInformations();
+        void setCompInformation(nlohmann::json newInfo, std::string identifier);
 
 
     protected:
         AiguillageMode m_mode;
         AiguillageType m_type;
-        Direction convertIntIntoDirection(int direction);
-        int convertDirectionIntoInt(Direction direction);
-
-        std::string convertDirectionIntoString(Direction direction);
-        Direction convertStringIntoDirection(std::string direction);
 
         Direction m_currentDirection;
         Direction m_targetDirection;
         const std::vector<Direction> m_validDirections;
 
-        bool m_isStopping;
-        bool m_isDisponible;
-        std::vector<IndisponibilityReasons> m_indisponibilityReasons;
+        bool m_isStopping;//!< Non stockés en mémoire car doit être défini en cours d'éxecution.
+        bool m_isDisponible;//!< Non stockés en mémoire car doit être défini en cours d'éxecution.
+        std::vector<IndisponibilityReasons> m_indisponibilityReasons;//!< Non stockés en mémoire car doit être défini en cours d'éxecution.
         std::string m_tag;
         int m_id;//!<l'id attribué par l'AiguillageHandler.
         std::weak_ptr<AiguillageHandler> m_parent;
 
+        void mergeJSon(std::shared_ptr<nlohmann::json> main, nlohmann::json& toAdd);
+        TreeSerializer<BaseAiguillage> m_serializer;//!< Utilisé uniquement à des fins de ctockage.
+        TreeSerializer<BaseAiguillage> m_classicSerializer; //!< Utilisé pour véhiculer toutes les informations publiques de l'aiguillage.
+        nlohmann::json m_complementaryInformations;
 
     private:
+        void registerJSONNode();
 };
 
 #endif // BASEAIGUILLAGE_H

@@ -4,12 +4,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <SFML/System.hpp>
 #include <memory>
 
 #include "EventHandler.h"
 #include "BaseEvent.h"
 #include "AiguillageManager.h"
+
+#include <fstream>
+#include <chrono>
 
 
 class UserEvent;
@@ -19,7 +21,8 @@ class Base
 {
     public:
         /** Default constructor */
-        Base();
+        Base(std::string savePath);
+        Base(std::string savePath, nlohmann::json saveData);
         void launch();
 
         /** Default destructor */
@@ -31,8 +34,10 @@ class Base
 
         std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage>> findAiguillageById(int aiguillageHandlerId,int aiguillageId, bool* success);//!<fait appel à la fonction AiguillageManager::
         std::weak_ptr<AiguillageHandler> findAiguillageHandlerById(int aiguillageHandlerId);
+         nlohmann::json save();
 
     private:
+        std::string m_savePath;
         EventHandler m_eventHandler;
         AiguillageManager m_aiguillageManager;
         bool stop;

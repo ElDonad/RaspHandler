@@ -22,15 +22,19 @@ class SinglePinModeCompatibleAiguillageHandler : public AiguillageHandler
             int state;
         };
 
+        SinglePinModeCompatibleAiguillageHandler(AiguillageManager* parent);
+        SinglePinModeCompatibleAiguillageHandler(AiguillageManager* parent, nlohmann::json data);
         virtual std::vector<std::pair<nlohmann::json,std::weak_ptr<Alimentation> > > getAlimentations()=0;//!< @return la liste des alimentations disponibles.
         virtual void addAlimentation(int pinId, std::string alimentationName,nlohmann::json comp)=0;//!< AJoute une alimentation. Doit être implémenté par les handlers.
         virtual AiguillageHandlerSwitchingAlimState toggleAlim(int pinAlim, bool switchState = false)=0;
         virtual nlohmann::json getCompLocParamsAlimentation()=0;//!< idem que getCompLocParamsAiguillage() , mais pour les alimentations
         virtual void requestSimpleSwitch(SimpleAiguillage::SinglePinModePin toSwitch)=0;
+        virtual void backup(nlohmann::json data);
 
     protected:
 
     private:
+        void registerJSONNode();
 };
 
 #endif // SINLGEPINMODECOMPATIBLEAIGUILLAGEHANDLER_H

@@ -3,10 +3,18 @@
 
 using namespace std;
 
-Base::Base() : m_eventHandler(this), m_aiguillageManager(this)
+Base::Base(std::string savePath) : m_eventHandler(this), m_aiguillageManager(this)
 {
     stop = false;
     m_eventHandler.setParent(this);
+    m_savePath = savePath;
+}
+
+Base::Base(std::string savePath, nlohmann::json saveData) : m_eventHandler(this, saveData["event_handler"]), m_aiguillageManager(this, saveData["aiguillage_manager"])
+{
+    stop = false;
+    m_eventHandler.setParent(this);
+    m_savePath = savePath;
 }
 
 Base::~Base()
@@ -53,6 +61,14 @@ void Base::proceedEvent(std::shared_ptr<UserEvent> event)
             m_aiguillageManager.proceedEvent(event);
             break;
         }
+
+    case UserEvent::RequestSave:
+        {
+            nlohmann::json saveData = this->save();
+            ofstream file(m_savePath, ios::out | ios::trunc);
+            file<<saveData.dump();
+            break;
+        }
     }
 }
 
@@ -62,7 +78,7 @@ void Base::launch()
     m_eventHandler.launch();
     while (stop == false)
     {
-        sf::sleep(sf::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 }
 
@@ -87,6 +103,14 @@ std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage>> Base::findAiguillageById
 std::weak_ptr<AiguillageHandler> Base::findAiguillageHandlerById(int aiguillageHandlerId)
 {
     return m_aiguillageManager.findAiguillageHandlerById(aiguillageHandlerId);
+}
+
+nlohmann::json Base::save()
+{
+    nlohmann::json toSave;
+    toSave["aiguillage_manager"] = m_aiguillageManager.save();
+    toSave["event_handler"] = m_eventHandler.save();
+    return toSave;
 }
 
 

@@ -11,26 +11,31 @@ using namespace std;
 EventHandler::EventHandler(Base* parent)
 {
     m_base = parent;
-    m_handlerThread = new sf::Thread(EventHandler::eventHandlerThread, this);
+    m_isStopping = false;
     m_userHandlers.push_back(dynamic_cast<UserHandler*>(new NetworkUserHandler(this)));
     m_userHandlers.push_back(dynamic_cast<UserHandler*>(new ConsoleUserHandler(this)));
+    //m_handlerThread = new std::thread(&EventHandler::eventHandlerThread, this);
 
+}
+
+EventHandler::EventHandler(Base* parent, nlohmann::json save)
+{
+    m_base = parent;
+    m_isStopping = false;
+
+    m_userHandlers.push_back(dynamic_cast<UserHandler*>(new NetworkUserHandler(this, save["network_user_handler"])));
+    m_userHandlers.push_back(dynamic_cast<UserHandler*>(new ConsoleUserHandler(this, save["console_user_handler"])));
+    //m_handlerThread = new std::thread(&EventHandler::eventHandlerThread, this);
 }
 
 EventHandler::~EventHandler()
 {
-    //dtor
+
 }
 
 void EventHandler::setParent(Base* parent)
 {
     m_base = parent;
-}
-
-void EventHandler::eventHandlerThread()
-{
-    int a;
-    a++;
 }
 
 void EventHandler::stop()
@@ -58,9 +63,10 @@ void EventHandler::sendAnswer(std::shared_ptr<BaseEvent> event)
 
 void EventHandler::launch()
 {
-    m_handlerThread->launch();
+    std::cout<<"Debut du lancement des eventHandler : "<<std::endl;
     for (int loop = 0; loop != m_userHandlers.size(); loop++)
     {
+        std::cout<<"Un eventHandler lance"<<std::endl;
         m_userHandlers[loop]->launch();
     }
 }
@@ -89,5 +95,13 @@ std::weak_ptr<AiguillageHandler> EventHandler::getAiguillageHandlerById(int aigu
 std::vector<std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage>>> EventHandler::getAiguillage()
 {
     return m_base->getAiguillages();
+}
+
+nlohmann::json EventHandler::save()
+{
+    nlohmann::json toReturn;
+    toReturn["console_user_handler"] = m_userHandlers[1]->save();
+    toReturn["network_user_handler"] = m_userHandlers[0]->save();
+    return toReturn;
 }
 

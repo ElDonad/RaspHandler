@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include "BaseEvent.h"
-#include <SFML/System.hpp>
+#include <mutex>
 
 class EventHandler;
 
@@ -24,6 +24,7 @@ class UserHandler
         virtual void receiveAnswer (std::shared_ptr<BaseEvent> answer)=0;
         virtual void launch()=0;
         virtual void stop();
+        virtual nlohmann::json save()=0;
 
     protected:
         void requestAddAiguillage(std::string tag, int pinG, int pinD);
@@ -33,7 +34,7 @@ class UserHandler
         bool m_stop;
 
         bool isStopping();
-        sf::Mutex m_MisStopping;
+        std::mutex m_MisStopping;
         EventHandler* m_parentEventHandler;
 
 

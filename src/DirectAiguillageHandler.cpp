@@ -16,13 +16,71 @@ int DirectAiguillageHandler::i_nextAvailableId = 0;
 
 const std::vector <BaseAiguillage::AiguillageType> DirectAiguillageHandler::compatiblesAiguillages = std::vector<BaseAiguillage::AiguillageType>({BaseAiguillage::AiguillageType::SimpleAiguillage1, BaseAiguillage::AiguillageType::DoubleAiguillage2});
 
-DirectAiguillageHandler::DirectAiguillageHandler(AiguillageManager* parent, std::string name)
+DirectAiguillageHandler::DirectAiguillageHandler(AiguillageManager* parent, std::string name) : SinglePinModeCompatibleAiguillageHandler(parent)
 {
     m_parent = parent;
     m_nom = name;
-    m_aiguillageChecker = std::shared_ptr<sf::Thread>(new sf::Thread(t_aiguillageChecker,this));
-    m_aiguillageChecker->launch();
+    registerJSonNode();
 
+
+}
+
+void DirectAiguillageHandler::backup(nlohmann::json saveData)
+{
+    SinglePinModeCompatibleAiguillageHandler::backup(saveData);
+    nlohmann::json actualData = saveData["SinglePinModeCompatibleAiguillageHandler"]["DirectAiguillageHandler"];
+    claimedPins.insert(claimedPins.end(), actualData["claimed_pins"].begin(), actualData["claimed_pins"].end());
+    //on enregistre les aiguillages
+    for (auto it = actualData["aiguillages"].begin(); it != actualData["aiguillages"].end(); ++it)
+    {
+        if (it->operator[]("type") == BaseAiguillage::SimpleAiguillage1)
+        {
+            nlohmann::json saved = *it;
+            m_aiguillages.push_back(std::shared_ptr<BaseAiguillage> (new SimpleAiguillage1(saved, shared_from_this())));
+        }
+    }
+
+    //on enregistre les alimentations :
+    for(auto it = actualData["alimentations"].begin(); it != actualData["alimentations"].end(); ++it)
+    {
+        nlohmann::json thisData = *it;
+        m_alimentations.push_back(std::shared_ptr<Alimentation>(new Alimentation({thisData["pin_id"], thisData["aiguillage_handler_id"], thisData["alimentation_id"], thisData["alimentation_name"], thisData["state"]})));
+    }
+
+
+}
+
+void DirectAiguillageHandler::registerJSonNode()
+{
+    m_serializer.registerJSonNode([=](AiguillageHandler* toSerialize)
+    {
+        nlohmann::json toReturn;
+        DirectAiguillageHandler* toSerializeCasted = dynamic_cast<DirectAiguillageHandler*>(toSerialize);
+        toReturn["claimed_pins"] = nlohmann::json::array();
+        for (auto it = toSerializeCasted->claimedPins.begin(); it != toSerializeCasted->claimedPins.end(); ++it)
+        {
+            toReturn["claimedPins"].push_back(*it);
+        }
+        toReturn["aiguillages"] = nlohmann::json::array();
+        for (auto it = toSerializeCasted->m_aiguillages.begin(); it != toSerializeCasted->m_aiguillages.end(); ++it)
+        {
+            toReturn["aiguillages"].push_back((*it)->save());
+        }
+        toReturn["alimentations"] = nlohmann::json::array();
+        for (auto it = m_alimentations.begin(); it != m_alimentations.end(); ++it)
+        {
+            nlohmann::json alim;
+
+            alim["pin_id"] = (*it)->pinId;
+            alim["aiguillage_handler_id"] = (*it)->aiguillageHandlerId;
+            alim["alimentation_id"] = (*it)->alimentationId;
+            alim["alimentation_name"] = (*it)->alimentationName;
+            alim["state"] = (*it)->state;
+            toReturn["alimentations"].push_back(alim);
+        }
+
+        return toReturn;
+    }, "DirectAiguillageHandler");
 }
 
 DirectAiguillageHandler::~DirectAiguillageHandler()
@@ -32,14 +90,26 @@ DirectAiguillageHandler::~DirectAiguillageHandler()
 
 void DirectAiguillageHandler::launch()
 {
-
+    std::cout<<"Launching DirectAiguillageHandler thread..."<<std::endl;
+    m_aiguillageChecker = std::shared_ptr<std::thread>(new std::thread(&DirectAiguillageHandler::t_aiguillageChecker,this));
 }
 
 DirectAiguillageHandler::AiguillageHandlerActivatingAiguillageState DirectAiguillageHandler::switchAiguillage(int aiguillageId, BaseAiguillage::Direction direction)
 {
-// TODO (Elie#3#): rajouter les sécurités
 
     std::shared_ptr<BaseAiguillage> toSwitch = findAiguillageById(aiguillageId).second.lock();
+    //1. Vérifier si la direction est valide
+    std::vector<BaseAiguillage::Direction> validDirections = toSwitch->getValidDirections();
+    bool validDirection = false;
+    for (auto it = validDirections.begin(); it != validDirections.end(); ++it)
+    {
+        if (*it == direction)
+            validDirection = true;
+    }
+    if(validDirection == false)
+        return DirectAiguillageHandler::AiguillageHandlerActivatingAiguillageState::AiguillageInvalidSensError;
+
+
     std::vector<BaseAiguillage::ErrorsAiguillage> errors;
     toSwitch->changeSens(direction, errors);
     return AiguillageHandlerActivatingAiguillageState::AiguillageDone;
@@ -53,7 +123,7 @@ DirectAiguillageHandler::AiguillageHandlerSwitchingAlimState DirectAiguillageHan
         if ((*it)->alimentationId == alimId)
             pinAlim = (*it)->pinId;
     }
-    #ifdef RASP
+#ifdef RASP
 
     if (switchState == true)
     {
@@ -67,67 +137,95 @@ DirectAiguillageHandler::AiguillageHandlerSwitchingAlimState DirectAiguillageHan
     }
 
 
-    #endif // RASP
-    #ifndef RASP
+#endif // RASP
+#ifndef RASP
     if (switchState == true)
         std::cout<<"Alimentation "<<pinAlim<< " activee."<<std::endl;
 
     else
         std::cout<<"Alimentation "<<pinAlim<< " desactivee."<<std::endl;
-    #endif // RASP
+#endif // RASP
 }
 
-void DirectAiguillageHandler::claimPin(int pinToClaim)
+bool DirectAiguillageHandler::claimPin(int pinToClaim)
 {
-    #ifdef RASP
+#ifdef RASP
 
     pinMode(pinToClaim, OUTPUT);
     digitalWrite(pinToClaim, LOW);
 
-    #endif // RASP
+#endif // RASP
+    if (!isPinClaimed(pinToClaim))
+    {
+        claimedPins.push_back(pinToClaim);
+        return true;
+    }
+    else
+        return false;
 }
 
 bool DirectAiguillageHandler::isPinClaimed(int pin)
 {
+    for (auto it = claimedPins.begin(); it != claimedPins.end(); ++it)
+    {
+        if (pin == *it)
+            return true;
+    }
+    return false;
+}
 
+bool DirectAiguillageHandler::unclaimPin(int pinToUnclaim)
+{
+    if (isPinClaimed(pinToUnclaim))
+    {
+        for (auto it = claimedPins.begin(); it != claimedPins.end(); ++it)
+        {
+            if (*it == pinToUnclaim)
+            {
+                claimedPins.erase(it);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void DirectAiguillageHandler::simpleSwitch(int pin, SimpleAiguillage::PinState sens)
 {
-    #ifndef RASP
+#ifndef RASP
     std::cout<<"Pin "<<pin<<" switch à la position "<<sens<<std::endl;
-    #endif // RASP
+#endif // RASP
 
-    #ifdef RASP
+#ifdef RASP
     int position;
     if (sens == SimpleAiguillage::PinState::Activated)
-        {
-            std::cout<<"[DEBUG] pin "<<pin<<" activé"<<std::endl;
-            position = HIGH;
-        }
+    {
+        std::cout<<"[DEBUG] pin "<<pin<<" activé"<<std::endl;
+        position = HIGH;
+    }
     else if (sens == SimpleAiguillage::PinState::Unactivated)
-        {
-            std::cout<<"[DEBUG] pin "<<pin<<" désactivé"<<std::endl;
-            position = LOW;
-        }
+    {
+        std::cout<<"[DEBUG] pin "<<pin<<" désactivé"<<std::endl;
+        position = LOW;
+    }
     digitalWrite(pin, position);
-    #endif // RASP
+#endif // RASP
 }
 
 void DirectAiguillageHandler::doubleSwitch(int pin)
 {
-    #ifndef RASP
+#ifndef RASP
     std::cout<<"pin "<<pin<<" active"<<std::endl;
-    sf::sleep(sf::seconds(SWITCH_TIMER));
+    std::this_thread::sleep_for(std::chrono::milliseconds(SWITCH_TIMER));
     std::cout<<"pin "<<pin<<" desactive"<<std::endl;
-    #endif // RASP
+#endif // RASP
 
-    #ifdef RASP
+#ifdef RASP
     digitalWrite(pin, HIGH);
-    sf::sleep(sf::seconds(SWITCH_TIMER));
+    std::this_thread::sleep_for(std::chrono::milliseconds(SWITCH_TIMER));
     digitalWrite(pin, LOW);
     std::cout<<"[DEBUG] Pin "<<pin<<" DoubleSwitché"<<std::endl;
-    #endif // RASP
+#endif // RASP
 }
 
 std::vector<std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage> > > DirectAiguillageHandler::getAiguillages()
@@ -158,7 +256,7 @@ std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage>> DirectAiguillageHandler:
 
 }
 void DirectAiguillageHandler::addAiguillage(std::shared_ptr<BaseAiguillage> aiguillage, nlohmann::json comp)
- {
+{
 
     std::vector<int> usedPinsByAiguillage = aiguillage->getUsedPins();
     auto alreadyUsedPins = getUsedPins();
@@ -206,12 +304,14 @@ void DirectAiguillageHandler::addAiguillage(std::shared_ptr<BaseAiguillage> aigu
     event->aiguillageAddedEvent.aiguillageId = aiguillage->getId();
     m_parent->proceedEvent(event);
 
- }
+}
 
 void DirectAiguillageHandler::addAlimentation(int pinId, std::string alimentationName, nlohmann::json comp)
 {
     auto alreadyUsedPins = getUsedPins();
-// TODO (Elie#3#): Faire les sécurités ici
+    //vérifier si le pin est déjà utilisé ou pas.
+
+
     std::shared_ptr<Alimentation> toAdd (new Alimentation);
     toAdd->alimentationName = alimentationName;
     toAdd->pinId = pinId;
@@ -277,12 +377,13 @@ nlohmann::json DirectAiguillageHandler::getCompLocParamsAlimentation()
 
 void DirectAiguillageHandler::t_aiguillageChecker()
 {
-    while (true){
+    while (true)
+    {
         for (auto it = m_aiguillages.begin(); it != m_aiguillages.end(); ++it)
         {
             (*it)->directionChanger();
         }
-        sf::sleep(sf::milliseconds(5));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 }
 

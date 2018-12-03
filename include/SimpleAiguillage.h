@@ -29,7 +29,9 @@ class SimpleAiguillage : public BaseAiguillage
             PinState pinState;
         };
         /** Default constructor */
-        SimpleAiguillage(std::vector<Direction>validDirections);
+        SimpleAiguillage(std::vector<Direction> validDirections);
+        SimpleAiguillage(std::vector<Direction> validDirections, nlohmann::json save);
+        //SimpleAiguillage(nlohmann::json backup);
         /** Default destructor */
 //        virtual ~SimpleAiguillage();
         virtual bool changeSens(Direction direction, std::vector<ErrorsAiguillage>& errors)=0;
@@ -38,16 +40,17 @@ class SimpleAiguillage : public BaseAiguillage
         virtual std::vector<int> getUsedPins();
         virtual void confirm();
         virtual void directionChanger();
+        virtual std::string getStringifiedType();
 
 
     protected:
-        PinState m_pinState;
         std::map<Direction,SinglePinModePin> m_directionsMap;
 
         static int i_id;
         int getNextDisponibleId();
         int m_alimentationId, m_alimentationHandlerId;
     private:
+        void registerJSONNode();
 };
 
 #endif // SIMPLEAIGUILLAGE_H
