@@ -54,7 +54,7 @@ void ConsoleUserHandler::m_handler()
 
             displayAiguillagesList();
             std::vector<std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage>>> aiguillages = m_parentEventHandler->getAiguillage();
-            cout<<endl<<"> Pour en savoir plus sur un aiguillage, tapez son numéro d'identifiant. sinon, tapez 'x'. ";
+            cout<<endl<<"> Pour en savoir plus sur un aiguillage, tapez son numï¿½ro d'identifiant. sinon, tapez 'x'. ";
             bool quit = false;
             while (quit == false)
             {
@@ -90,7 +90,7 @@ void ConsoleUserHandler::m_handler()
 
         else if (retour == "2")//ajouter ou supprimer des aiguillages
         {
-            cout<<"> Entrez le type de l'aiguillage (se référer à la documentation)"<<endl;
+            cout<<"> Entrez le type de l'aiguillage (se rï¿½fï¿½rer ï¿½ la documentation)"<<endl;
             string retour = safeWaitForEntry();
 
             //Liste des aiguillages possinles
@@ -102,7 +102,7 @@ void ConsoleUserHandler::m_handler()
                 int pin;
                 cout<<endl<<"> Entrez le pin de l'aiguillage : ";
                 pin = stoi(safeWaitForEntry());
-                cout<<endl<<"> Entrez la direction de base de l'aiguillage (pin désactivé)(g/d) : ";
+                cout<<endl<<"> Entrez la direction de base de l'aiguillage (pin dï¿½sactivï¿½)(g/d) : ";
                 string direction = "";
 
                 while (direction != "g" && direction != "d")
@@ -146,7 +146,7 @@ void ConsoleUserHandler::m_handler()
                     }
                     catch(invalid_argument)
                     {
-                        cout<<endl<<"Tu pourrais la refaire en te gourant pas s'il te plaît ?"<<endl;
+                        cout<<endl<<"Tu pourrais la refaire en te gourant pas s'il te plaï¿½t ?"<<endl;
                     }
                 }
                 cout<<endl;
@@ -198,7 +198,7 @@ void ConsoleUserHandler::m_handler()
                     }
                     else
                     {
-                        cout<<"Bug de typage de donnée !!"<<endl;
+                        cout<<"Bug de typage de donnï¿½e !!"<<endl;
                     }
                 }
 
@@ -222,13 +222,13 @@ void ConsoleUserHandler::m_handler()
         else if (retour == "3")//manipuler les aiguillages
         {
             displayAiguillagesList();
-            int aiguillageId = getSafeInt("Entrez l'aiguillage à manipuler : ");
+            int aiguillageId = getSafeInt("Entrez l'aiguillage Ã  manipuler : ");
             std::weak_ptr<BaseAiguillage> wk_toSwitch = m_parentEventHandler->getAiguillage()[aiguillageId - 1].second;
             nlohmann::json toSwitchComp = m_parentEventHandler->getAiguillage()[aiguillageId - 1].first;
             std::shared_ptr<BaseAiguillage> toSwitch = wk_toSwitch.lock();
             cout<<endl<<">Aiguillage choisi : "<<toSwitch->getTag()<<endl;
             std::vector<BaseAiguillage::Direction> allowedDirections = toSwitch->getValidDirections();
-            cout<<endl<<"Liste des directions autorisées : "<<endl;
+            cout<<endl<<"Liste des directions autorisÃ©es : "<<endl;
             int directionId = 1;
             for (auto it = allowedDirections.begin(); it != allowedDirections.end(); ++it)
             {
@@ -261,7 +261,7 @@ void ConsoleUserHandler::m_handler()
                 ++directionId;
             }
             cout<<endl;
-            directionId = getSafeInt("Entrez la direction souhaitée : ") - 1;
+            directionId = getSafeInt("Entrez la direction souhaitï¿½e : ") - 1;
             std::shared_ptr<UserEvent> event (new UserEvent(UserEvent::UserEventTypes::ChangeAiguillageState));
             std::cout<<toSwitch->getTag();
             event->changeAiguillageStateEvent.aiguillageHandlerId = toSwitch->getParentAiguillageHandler().lock()->getId();
@@ -277,7 +277,7 @@ void ConsoleUserHandler::m_handler()
             cout<<"     ++Gestionnaire d'alimentation++     "<<endl<<endl;
             cout<<">1. Consulter la liste des alimentations"<<endl;
             cout<<">2. Ajouter une alimentaion"<<endl;
-            cout<<">3. Supprimer une alimentation(les aiguillages qui en dépendent deviendront indisponibles"<<endl;
+            cout<<">3. Supprimer une alimentation(les aiguillages qui en dï¿½pendent deviendront indisponibles"<<endl;
             retour = safeWaitForEntry();
             if (retour == "1")//consulter la liste des alimentations
             {
@@ -294,20 +294,20 @@ void ConsoleUserHandler::m_handler()
                 std::shared_ptr<UserEvent> event (new UserEvent(UserEvent::UserEventTypes::AddAlimentation));
                 m_storedEventId.push_back(event->getId());
 
-                //récupération de l'id de l'eventHandler
+                //rï¿½cupï¿½ration de l'id de l'eventHandler
                 bool done = false;
                 while (done == false)
                 {
                     try
                     {
-                        cout<<">Sélectionnez l'EventHandler hôte en inscrivant son id : ";
+                        cout<<">Sï¿½lectionnez l'EventHandler hï¿½te en inscrivant son id : ";
                         retour = safeWaitForEntry();
                         event->addAlimentationEvent.idAiguillageHandler = stoi(retour);
                         done = true;
                     }
                     catch(invalid_argument)
                     {
-                        cout<<endl<<"Andouille, tu écris n'importe quoi ! recommence !"<<endl;
+                        cout<<endl<<"Andouille, tu ï¿½cris n'importe quoi ! recommence !"<<endl;
                         continue;
                     }
                 }
@@ -317,7 +317,7 @@ void ConsoleUserHandler::m_handler()
                 {
                     try
                     {
-                        cout<<"Entrez le pin utilisé par l'alimentation : ";
+                        cout<<"Entrez le pin utilisï¿½ par l'alimentation : ";
                         retour = safeWaitForEntry();
                         event->addAlimentationEvent.pinAlim = stoi(retour);
                         done = true;
@@ -331,7 +331,7 @@ void ConsoleUserHandler::m_handler()
                 event->addAlimentationEvent.alimentationName = safeWaitForEntry();
 
 
-                //paramètres supplémentaires...
+                //paramï¿½tres supplï¿½mentaires...
                 std::shared_ptr<AiguillageHandler> handler = m_parentEventHandler->getAiguillageHandlerById(event->addAlimentationEvent.idAiguillageHandler).lock();
                 std::shared_ptr<SinglePinModeCompatibleAiguillageHandler> goodHandler = std::dynamic_pointer_cast<SinglePinModeCompatibleAiguillageHandler>(handler);
                 nlohmann::json toFill = goodHandler->getCompLocParamsAlimentation();
@@ -379,7 +379,7 @@ void ConsoleUserHandler::m_handler()
                     }
                     else
                     {
-                        cout<<"Bug de typage de donnée !!"<<endl;
+                        cout<<"Bug de typage de donnï¿½e !!"<<endl;
                     }
                 }
                 event->addAiguillageEvent.comp = toFill;
@@ -414,7 +414,7 @@ void ConsoleUserHandler::m_handler()
 //
 //        else if (retour == "3")//modifier sens
 //        {
-//            cout<<"> Sélectionnez un aiguillage :"<<endl;
+//            cout<<"> Sï¿½lectionnez un aiguillage :"<<endl;
 //            cout<<"Num|        Nom         |Dir"<<endl;
 //            vector <Aiguillage*> aiguillages = m_parentEventHandler->getAiguillage();
 //            for (int loop = 0; aiguillages.size() != loop; loop++)
@@ -455,7 +455,7 @@ void ConsoleUserHandler::m_handler()
 //                        params.push_back("0");
 //                        UserEvent changeSens(UserEvent::ChangeAiguillageState, params);
 //                        m_parentEventHandler->transmitEvent(changeSens);
-//                        cout<<endl<<"Requête envoyée !"<<endl;
+//                        cout<<endl<<"Requï¿½te envoyï¿½e !"<<endl;
 //                    }
 //                    else if (retour == "D" || retour == "6" || retour == "d")
 //                    {
@@ -464,7 +464,7 @@ void ConsoleUserHandler::m_handler()
 //                        params.push_back("1");
 //                        UserEvent changeSens(UserEvent::ChangeAiguillageState, params);
 //                        m_parentEventHandler->transmitEvent(changeSens);
-//                        cout<<endl<<"Requête envoyée !"<<endl;
+//                        cout<<endl<<"Requï¿½te envoyï¿½e !"<<endl;
 //                    }
 //                    else if (retour == "|abort")
 //                        return;
@@ -485,9 +485,9 @@ void ConsoleUserHandler::m_handler()
 
         else if (retour == "x")
         {
-            cout<<"Retour demandé"<<endl;
+            cout<<"Retour demandï¿½"<<endl;
             std::shared_ptr<UserEvent> stopEvent(new UserEvent(UserEvent::Stop));
-            stopEvent->stopEvent.raison = "Arrêt initié par le client console";
+            stopEvent->stopEvent.raison = "Arrï¿½t initiï¿½ par le client console";
             m_parentEventHandler->transmitEvent(stopEvent);
         }
         else if (retour == "|abort")
@@ -519,7 +519,7 @@ void ConsoleUserHandler::receiveAnswer(std::shared_ptr<BaseEvent> answer)
         {
             if (isConcerned(answer->getId()) == true)
             {
-                cout<<"> L'ajout de l'aiguillage a échoué pour les raisons suivantes :"<<endl;
+                cout<<"> L'ajout de l'aiguillage a ï¿½chouï¿½ pour les raisons suivantes :"<<endl;
                 for (int loop = 0; loop != answer->addingAiguillageAbortedEvent.errors.size(); loop++)
                 {
                     cout<<" - "<<answer->addingAiguillageAbortedEvent.errors[loop]<<endl;
@@ -531,7 +531,7 @@ void ConsoleUserHandler::receiveAnswer(std::shared_ptr<BaseEvent> answer)
         {
             if (isConcerned(answer->getId()) == true)
             {
-                cout<<"Aiguillage "<<m_parentEventHandler->findAiguillageById(answer->addingAiguillageConfirmedEvent.aiguillageHandlerId,answer->addingAiguillageConfirmedEvent.aiguillageId, nullptr).second.lock()->getTag()<<" ajouté avec succès"<<endl;
+                cout<<"Aiguillage "<<m_parentEventHandler->findAiguillageById(answer->addingAiguillageConfirmedEvent.aiguillageHandlerId,answer->addingAiguillageConfirmedEvent.aiguillageId, nullptr).second.lock()->getTag()<<" ajoutï¿½ avec succï¿½s"<<endl;
             }
             break;
 
@@ -539,7 +539,7 @@ void ConsoleUserHandler::receiveAnswer(std::shared_ptr<BaseEvent> answer)
 
     case BaseEvent::AiguillageAdded:
         {
-            cout<<"Aiguillage "<<m_parentEventHandler->findAiguillageById(answer->aiguillageAddedEvent.handlerId, answer->aiguillageAddedEvent.aiguillageId, nullptr).second.lock()->getTag()<<" ajouté."<<endl;
+            cout<<"Aiguillage "<<m_parentEventHandler->findAiguillageById(answer->aiguillageAddedEvent.handlerId, answer->aiguillageAddedEvent.aiguillageId, nullptr).second.lock()->getTag()<<" ajoutï¿½."<<endl;
             break;
         }
 

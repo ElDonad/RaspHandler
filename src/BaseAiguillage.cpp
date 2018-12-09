@@ -149,7 +149,7 @@ void BaseAiguillage::setIndisponible(std::vector<BaseAiguillage::Indisponibility
     {
         for (auto it2 = m_indisponibilityReasons.begin(); it2 != m_indisponibilityReasons.end(); ++it)
         {
-            if (*it == *it2)//si déjà présent
+            if (*it == *it2)//si dï¿½jï¿½ prï¿½sent
                 continue;
             else
             {
@@ -235,4 +235,9 @@ nlohmann::json BaseAiguillage::getCompInformations()
 void BaseAiguillage::setCompInformation(nlohmann::json newInfo, std::string identifier)
 {
     m_complementaryInformations[identifier] = newInfo;
+}
+
+int BaseAiguillage::setId(int id)
+{
+    m_id = id;
 }

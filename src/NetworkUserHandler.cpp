@@ -32,7 +32,7 @@ nlohmann::json NetworkUserHandler::processItem(nlohmann::json toProcess, nlohman
 {
     if (toProcess["event_type"] == "GetAiguillages")
     {
-        std::cout<<"Demande de récupération d'aiguillage recue"<<std::endl;
+        std::cout<<"Demande de rï¿½cupï¿½ration d'aiguillage recue"<<std::endl;
         nlohmann::json toReturn;
         toReturn["event_type"] = "GotAiguillages";
         toReturn["aiguillages"] = nlohmann::json::array();
@@ -61,7 +61,7 @@ nlohmann::json NetworkUserHandler::processItem(nlohmann::json toProcess, nlohman
 
     else if (!toProcess.empty())
     {
-        std::cout<<"erreur de réception de paquet"<<std::endl;
+        std::cout<<"erreur de rï¿½ception de paquet"<<std::endl;
     }
 
     return nlohmann::json();
@@ -110,7 +110,7 @@ void NetworkUserHandler::serverTick()
         }
     }
 
-    //2. Gestion des évènements
+    //2. Gestion des ï¿½vï¿½nements
     for (auto it = m_clients.begin(); it != m_clients.end(); ++it)
     {
         std::vector<std::string> received = socketReceive(it->second);
@@ -208,7 +208,7 @@ std::vector<std::string> NetworkUserHandler::socketReceive(ASocket::Socket* toRe
     std::vector<std::string> toReturn;
     std::string message;
     int received;//taille totale recue
-    int hasToTransfer;// retour direct de la socket, utile dans ce scope car utilisé dans la boucle conditionnelle
+    int hasToTransfer;// retour direct de la socket, utile dans ce scope car utilisï¿½ dans la boucle conditionnelle
 
     do
     {
@@ -227,7 +227,7 @@ std::vector<std::string> NetworkUserHandler::socketReceive(ASocket::Socket* toRe
 
         for (auto it = message.begin(); it != message.end() - 1; ++it)
         {
-            if (*it == '\0003')
+            if (*it == '\u0008')//TODO : faire Ã a mieux (soit un tag spÃ©cifique de fin de message, soit un header)
             {
                 toReturn.push_back(std::string(message.begin(), it));
                 message = std::string(it + 1, message.end());
@@ -247,5 +247,3 @@ void NetworkUserHandler::broadcast(std::string toSend)
         m_listener.Send(*(it->second), toSend);
     }
 }
-
-

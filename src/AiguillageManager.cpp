@@ -44,7 +44,7 @@ void AiguillageManager::proceedEvent(std::shared_ptr<UserEvent> event)
                         std::cout<<(*it)->getId()<<std::endl;
                         if((*it)->getId() == aiguillageHandlerId)
                         {
-                            //L'AiguillageHandler a été trouvé
+                            //L'AiguillageHandler a ï¿½tï¿½ trouvï¿½
                             (*it)->addAiguillage(std::shared_ptr<BaseAiguillage>(new SimpleAiguillage1(dynamic_cast<SimpleAiguillage1::AiguillageParams*>(event->addAiguillageEvent.params),*it)),event->addAiguillageEvent.comp);
                             return;
 
@@ -70,9 +70,9 @@ void AiguillageManager::proceedEvent(std::shared_ptr<UserEvent> event)
             convertedAiguillageHandler->addAlimentation(event->addAlimentationEvent.pinAlim, event->addAlimentationEvent.alimentationName, event->addAlimentationEvent.comp);
 //            for (auto it = callback.begin(); it != callback.end(); ++it)
 //            {
-//                if ((*it)->getType() == AiguillageHandlerEvent::AiguillageHandlerEventTypes::AlimentationAdded)//si les callbacks sont bien appropriés
+//                if ((*it)->getType() == AiguillageHandlerEvent::AiguillageHandlerEventTypes::AlimentationAdded)//si les callbacks sont bien appropriï¿½s
 //                {
-//                    if ((*it)->alimentationAddedEvent.done == true)//si tout s'est passé correctement
+//                    if ((*it)->alimentationAddedEvent.done == true)//si tout s'est passï¿½ correctement
 //                    {
 //                        std::shared_ptr<BaseEvent> createdEvent (new BaseEvent(BaseEvent::EventTypes::AddingAlimentationConfirmed, event->getId()));
 //                        createdEvent->addingAlimentationConfirmedEvent.aiguillageHandlerId = event->addAlimentationEvent.idAiguillageHandler;
@@ -125,13 +125,14 @@ void AiguillageManager::proceedEvent(std::shared_ptr<UserEvent> event)
         }
         case UserEvent::UserEventTypes::ChangeAiguillageState:
             {
+                std::cout<<"Changement de l'aiguillage avec l'event : "<<event->changeAiguillageStateEvent.aiguillageId<<std::endl;
                 std::shared_ptr<AiguillageHandler> handler = findAiguillageHandlerById(event->changeAiguillageStateEvent.aiguillageHandlerId).lock();
                 std::shared_ptr<BaseAiguillage> aiguillage = handler->findAiguillageById(event->changeAiguillageStateEvent.aiguillageId).second.lock();
-                std::vector<std::shared_ptr<AiguillageHandlerEvent>> errors;//à implémenter la sécurité
+                std::vector<std::shared_ptr<AiguillageHandlerEvent>> errors;//ï¿½ implï¿½menter la sï¿½curitï¿½
                 //aiguillage->changeSens(event->changeAiguillageStateEvent.targetState, errors);
                 handler->switchAiguillage(event->changeAiguillageStateEvent.aiguillageId, event->changeAiguillageStateEvent.targetState);
 
-// TODO (Elie#2#): Eventuellement lancer également le signal ChangingAiguillageStateAbortes/Confirmed (et gérer les erreurs aussi...)
+// TODO (Elie#2#): Eventuellement lancer ï¿½galement le signal ChangingAiguillageStateAbortes/Confirmed (et gï¿½rer les erreurs aussi...)
 
                 std::shared_ptr<BaseEvent> retourEvent (new BaseEvent(BaseEvent::EventTypes::AiguillageStateChanged,0, event->getSender()));
                 retourEvent->aiguillageStateChangedEvent.aiguillageHandlerId = handler->getId();
@@ -184,7 +185,7 @@ void AiguillageManager::launch()
 //            {
 //                int previousId = 0;
 //                previousId = m_backupsIds[event->registerHandlerEvent.backupId];
-//                if (previousId != 0)//si tout s'est bien passé
+//                if (previousId != 0)//si tout s'est bien passï¿½
 //                {
 //                    m_aiguillageHandlers.push_back(std::unique_ptr<AiguillageHandler>(event->registerHandlerEvent.aiguillageHandlerToRegister));
 //                    m_aiguillageHandlers.back()->initializeId(previousId);
@@ -235,7 +236,7 @@ void AiguillageManager::launch()
 //            }
 //            else
 //            {
-//// TODO (Elie#5#): à finir
+//// TODO (Elie#5#): ï¿½ finir
 //
 //            }
 //
@@ -308,7 +309,7 @@ void AiguillageManager::proceedEvent(std::shared_ptr<AiguillageHandlerEvent> eve
     case AiguillageHandlerEvent::AiguillageHandlerEventTypes::AiguillageAdded:
         {
             std::shared_ptr<BaseEvent> r_event;
-            if (event->aiguillageAddedEvent.done == true)//réussi
+            if (event->aiguillageAddedEvent.done == true)//rï¿½ussi
             {
                 std::shared_ptr<BaseEvent> newEvent (new BaseEvent(BaseEvent::EventTypes::AiguillageAdded,0));
                 newEvent->aiguillageAddedEvent.aiguillageId = event->aiguillageAddedEvent.aiguillageId;
@@ -372,12 +373,12 @@ void AiguillageManager::proceedEvent(std::shared_ptr<AiguillageHandlerEvent> eve
             }
         case AiguillageHandlerEvent::AiguillageHandlerEventTypes::AlimentationAdded:
             {
-                std::cout<<"Signal provisoire : alimentation ajoutée (depuis l'aiguillageManager)"<<std::endl;
+                std::cout<<"Signal provisoire : alimentation ajoutï¿½e (depuis l'aiguillageManager)"<<std::endl;
                 break;
             }
         case AiguillageHandlerEvent::AiguillageHandlerEventTypes::AlimentationDeleted:
             {
-                std::cout<<"Signal provisoire : alimentation supprimée (depuis l'aiguillageManager)"<<std::endl;
+                std::cout<<"Signal provisoire : alimentation supprimï¿½e (depuis l'aiguillageManager)"<<std::endl;
                 break;
             }
         case AiguillageHandlerEvent::AiguillageHandlerEventTypes::RequestSinglePinAlim:
@@ -412,4 +413,3 @@ nlohmann::json AiguillageManager::save()
 
     return toReturn;
 }
-

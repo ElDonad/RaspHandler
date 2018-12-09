@@ -30,3 +30,27 @@
 *.exe
 *.out
 *.app
+
+doxygen/
+
+*.sh
+
+*.json
+
+debug\.txt
+
+makefile
+
+programme
+
+*.cbp
+
+*.depend
+
+~\$otocole réseau\.docx
+
+SFML-raspHanler\.layout
+
+*.cscope_file_list
+
+log\.txt

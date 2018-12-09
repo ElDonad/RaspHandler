@@ -13,6 +13,7 @@ bool isContainedInVector(const std::vector<T> &toAnalyze, const D& item)
 }
 
 int DirectAiguillageHandler::i_nextAvailableId = 0;
+int DirectAiguillageHandler::i_nextAvailableAiguillageId = 0;
 
 const std::vector <BaseAiguillage::AiguillageType> DirectAiguillageHandler::compatiblesAiguillages = std::vector<BaseAiguillage::AiguillageType>({BaseAiguillage::AiguillageType::SimpleAiguillage1, BaseAiguillage::AiguillageType::DoubleAiguillage2});
 
@@ -98,7 +99,7 @@ DirectAiguillageHandler::AiguillageHandlerActivatingAiguillageState DirectAiguil
 {
 
     std::shared_ptr<BaseAiguillage> toSwitch = findAiguillageById(aiguillageId).second.lock();
-    //1. Vérifier si la direction est valide
+    //1. Vï¿½rifier si la direction est valide
     std::vector<BaseAiguillage::Direction> validDirections = toSwitch->getValidDirections();
     bool validDirection = false;
     for (auto it = validDirections.begin(); it != validDirections.end(); ++it)
@@ -128,12 +129,12 @@ DirectAiguillageHandler::AiguillageHandlerSwitchingAlimState DirectAiguillageHan
     if (switchState == true)
     {
         digitalWrite(pinAlim, HIGH);
-        std::cout<<"[DEBUG] Pin "<<pinAlim<<" activé (alim)"<<std::endl;
+        std::cout<<"[DEBUG] Pin "<<pinAlim<<" activï¿½ (alim)"<<std::endl;
     }
     else
     {
         digitalWrite(pinAlim, LOW);
-        std::cout<<"[DEBUG] Pin "<<pinAlim<<" désactivé (alim)"<<std::endl;
+        std::cout<<"[DEBUG] Pin "<<pinAlim<<" dï¿½sactivï¿½ (alim)"<<std::endl;
     }
 
 
@@ -193,19 +194,19 @@ bool DirectAiguillageHandler::unclaimPin(int pinToUnclaim)
 void DirectAiguillageHandler::simpleSwitch(int pin, SimpleAiguillage::PinState sens)
 {
 #ifndef RASP
-    std::cout<<"Pin "<<pin<<" switch à la position "<<sens<<std::endl;
+    std::cout<<"Pin "<<pin<<" switch ï¿½ la position "<<sens<<std::endl;
 #endif // RASP
 
 #ifdef RASP
     int position;
     if (sens == SimpleAiguillage::PinState::Activated)
     {
-        std::cout<<"[DEBUG] pin "<<pin<<" activé"<<std::endl;
+        std::cout<<"[DEBUG] pin "<<pin<<" activï¿½"<<std::endl;
         position = HIGH;
     }
     else if (sens == SimpleAiguillage::PinState::Unactivated)
     {
-        std::cout<<"[DEBUG] pin "<<pin<<" désactivé"<<std::endl;
+        std::cout<<"[DEBUG] pin "<<pin<<" dï¿½sactivï¿½"<<std::endl;
         position = LOW;
     }
     digitalWrite(pin, position);
@@ -224,7 +225,7 @@ void DirectAiguillageHandler::doubleSwitch(int pin)
     digitalWrite(pin, HIGH);
     std::this_thread::sleep_for(std::chrono::milliseconds(SWITCH_TIMER));
     digitalWrite(pin, LOW);
-    std::cout<<"[DEBUG] Pin "<<pin<<" DoubleSwitché"<<std::endl;
+    std::cout<<"[DEBUG] Pin "<<pin<<" DoubleSwitchï¿½"<<std::endl;
 #endif // RASP
 }
 
@@ -251,7 +252,7 @@ std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage>> DirectAiguillageHandler:
     }
     if (founded != nullptr)
         *founded = false;
-    std::cout<<"recherche d'aiguillage échouée"<<std::endl;
+    std::cout<<"recherche d'aiguillage ï¿½chouï¿½e"<<std::endl;
     return std::pair<nlohmann::json,std::weak_ptr<BaseAiguillage>>(nlohmann::json(),std::weak_ptr<BaseAiguillage>());
 
 }
@@ -260,7 +261,7 @@ void DirectAiguillageHandler::addAiguillage(std::shared_ptr<BaseAiguillage> aigu
 
     std::vector<int> usedPinsByAiguillage = aiguillage->getUsedPins();
     auto alreadyUsedPins = getUsedPins();
-    //1. test si le pin est utilisé ou pas
+    //1. test si le pin est utilisï¿½ ou pas
     for (auto it = usedPinsByAiguillage.begin(); it != usedPinsByAiguillage.end(); ++it)
     {
         for (auto it2 = alreadyUsedPins.begin(); it2 != alreadyUsedPins.end(); ++it2)
@@ -297,6 +298,7 @@ void DirectAiguillageHandler::addAiguillage(std::shared_ptr<BaseAiguillage> aigu
         claimPin(*it);
     }
     std::cout<<aiguillage->getTag()<<std::endl;
+    aiguillage->setId(getNewAiguillageId());
     m_aiguillages.push_back(aiguillage);
     std::shared_ptr<AiguillageHandlerEvent> event (new AiguillageHandlerEvent(AiguillageHandlerEvent::AiguillageHandlerEventTypes::AiguillageAdded));
     event->aiguillageAddedEvent.done = true;
@@ -309,7 +311,7 @@ void DirectAiguillageHandler::addAiguillage(std::shared_ptr<BaseAiguillage> aigu
 void DirectAiguillageHandler::addAlimentation(int pinId, std::string alimentationName, nlohmann::json comp)
 {
     auto alreadyUsedPins = getUsedPins();
-    //vérifier si le pin est déjà utilisé ou pas.
+    //vï¿½rifier si le pin est dï¿½jï¿½ utilisï¿½ ou pas.
 
 
     std::shared_ptr<Alimentation> toAdd (new Alimentation);
@@ -349,6 +351,12 @@ int DirectAiguillageHandler::getNewAlimentationId()
     return i_nextAvailableId;
 }
 
+int DirectAiguillageHandler::getNewAiguillageId()
+{
+    i_nextAvailableAiguillageId++;
+    return i_nextAvailableAiguillageId;
+}
+
 std::vector<std::pair<nlohmann::json,std::weak_ptr<SinglePinModeCompatibleAiguillageHandler::Alimentation> > > DirectAiguillageHandler::getAlimentations()
 {
     std::vector<std::pair<nlohmann::json,std::weak_ptr<SinglePinModeCompatibleAiguillageHandler::Alimentation> > > alims;
@@ -362,7 +370,7 @@ std::vector<std::pair<nlohmann::json,std::weak_ptr<SinglePinModeCompatibleAiguil
 nlohmann::json DirectAiguillageHandler::getCompLocParamsAiguillage()
 {
     /*
-    return nlohmann::json();//pas de paramètre nécessaire supplémentaire
+    return nlohmann::json();//pas de paramï¿½tre nï¿½cessaire supplï¿½mentaire
     */
     nlohmann::json toReturn;
     toReturn["testParam"] = "";

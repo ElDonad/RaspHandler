@@ -50,8 +50,9 @@ class DirectAiguillageHandler : public SinglePinModeCompatibleAiguillageHandler
         std::vector<std::shared_ptr<BaseAiguillage> > m_aiguillages;//!< Le conteneur des aiguillages sous la responsabilite de l'AiguillageHandler.
 
         std::vector<std::shared_ptr<Alimentation> > m_alimentations;
-        static int i_nextAvailableId;
+        static int i_nextAvailableId, i_nextAvailableAiguillageId;
         int getNewAlimentationId();
+        int getNewAiguillageId();
         std::shared_ptr<std::thread> m_aiguillageChecker;
         virtual void t_aiguillageChecker();
 

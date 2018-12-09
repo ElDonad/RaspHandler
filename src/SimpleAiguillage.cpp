@@ -69,7 +69,7 @@ void SimpleAiguillage::registerJSONNode()
         }
 
         return toReturn;
-    },"SimpleAiguillage");//Ici tout est reproduit à l'identique car le client a sans doute besoin d'afficher toutes ces infos.
+    },"SimpleAiguillage");//Ici tout est reproduit ï¿½ l'identique car le client a sans doute besoin d'afficher toutes ces infos.
 }
 
 //SimpleAiguillage::SimpleAiguillage(nlohmann::json backup) : BaseAiguillage(backup)
@@ -109,7 +109,7 @@ void SimpleAiguillage::directionChanger()
         parent->transmitEvent(onAlim);
 
         parent->requestSimpleSwitch(m_directionsMap[m_targetDirection]);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
         std::shared_ptr<AiguillageHandlerEvent> offAlim (new AiguillageHandlerEvent(AiguillageHandlerEvent::AiguillageHandlerEventTypes::RequestSinglePinAlim,m_parent.lock()->getId()));
         offAlim->requestSinglePinAlimEvent.aiguillageHandlerId = m_alimentationHandlerId;
